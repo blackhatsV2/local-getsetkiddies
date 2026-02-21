@@ -1,31 +1,41 @@
 import express from "express";
 import db from "../db/connection.js";
-import bodyParser from "body-parser";
+import bcrypt from "bcryptjs";
 
 const router = express.Router();
-router.use(bodyParser.urlencoded({ extended: true }));
 
 /* -----------------------------
    API: Register new parent
 ----------------------------- */
-router.post("/register", (req, res) => {
+router.post("/register", async (req, res) => {
   const { firstname, lastname, email, number, home_address, password } = req.body;
 
   if (!firstname || !lastname || !email || !password) {
     return res.status(400).send("All fields are required");
   }
 
-  const sql = `
-    INSERT INTO parents (firstname, lastname, email, phone_number, home_address, password, date_created)
-    VALUES (?, ?, ?, ?, ?, ?, NOW())
-  `;
-  db.query(sql, [firstname, lastname, email, number, home_address, password], (err) => {
-    if (err) {
-      console.error("Error registering parent:", err);
-      return res.status(500).send("Database error");
-    }
-    res.redirect("/login");
-  });
+  // Basic email validation
+  if (!email.includes("@")) {
+    return res.status(400).send("Invalid email format");
+  }
+
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const sql = `
+      INSERT INTO parents (firstname, lastname, email, phone_number, home_address, password, date_created)
+      VALUES (?, ?, ?, ?, ?, ?, NOW())
+    `;
+    db.query(sql, [firstname, lastname, email, number, home_address, hashedPassword], (err) => {
+      if (err) {
+        console.error("Error registering parent:", err);
+        return res.status(500).send("Database error");
+      }
+      res.redirect("/login");
+    });
+  } catch (error) {
+    console.error("Hashing error:", error);
+    res.status(500).send("Server error");
+  }
 });
 
 /* -----------------------------
@@ -34,8 +44,8 @@ router.post("/register", (req, res) => {
 router.post("/login", (req, res) => {
   const { email, password } = req.body;
 
-  const sql = "SELECT * FROM parents WHERE email = ? AND password = ?";
-  db.query(sql, [email, password], (err, result) => {
+  const sql = "SELECT * FROM parents WHERE email = ?";
+  db.query(sql, [email], async (err, result) => {
     if (err) {
       console.error("Error logging in:", err);
       return res.status(500).send("Database error");
@@ -43,7 +53,12 @@ router.post("/login", (req, res) => {
 
     if (result.length === 0) return res.status(401).send("Invalid credentials");
 
-    req.session.parent = result[0];
+    const match = await bcrypt.compare(password, result[0].password);
+    if (!match) return res.status(401).send("Invalid credentials");
+
+    // Don't store password in session
+    const { password: _, ...parentData } = result[0];
+    req.session.parent = parentData;
     res.redirect("/geofence-view");
   });
 });

@@ -254,8 +254,7 @@ ALTER TABLE `locations`
 -- Constraints for table `registered_children`
 --
 ALTER TABLE `registered_children`
-  ADD CONSTRAINT `registered_children_ibfk_1` FOREIGN KEY (`parent_id`) REFERENCES `parents` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `registered_children_ibfk_2` FOREIGN KEY (`parent_id`) REFERENCES `parents` (`id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `registered_children_ibfk_1` FOREIGN KEY (`parent_id`) REFERENCES `parents` (`id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

@@ -1,7 +1,8 @@
-import express from "express";
-import bodyParser from "body-parser";
-import cors from "cors";
 import dotenv from "dotenv";
+dotenv.config();
+
+import express from "express";
+import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 import session from "express-session";
@@ -12,14 +13,11 @@ import parentRoutes from "./api/parents.js";
 import childRoutes from "./api/children.js";
 import locationRoutes from "./api/locations.js";
 import geofenceRoutes from "./api/geofences.js";
-
-
-dotenv.config();
 const app = express();
 
 
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 
@@ -29,9 +27,9 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: false, 
+      secure: false,
       httpOnly: true,
-      maxAge: 1000 * 60 * 60, 
+      maxAge: 1000 * 60 * 60,
     },
   })
 );
@@ -130,9 +128,6 @@ app.get("/geofence-view", (req, res) => {
       return res.status(500).send("Database error");
     }
 
-    console.log("/geofence-view route triggered");
-    console.log("Fetched geofences:", rows);
-
     res.render("pages/geofence-view", {
       title: "View Geofences",
       parent,
@@ -147,10 +142,16 @@ app.use((req, res) => {
   res.status(404).render("pages/404", { title: "Page Not Found" });
 });
 
+// Global Error Handler
+app.use((err, req, res, next) => {
+  console.error("Unhandle Error:", err);
+  res.status(500).render("pages/404", { title: "Server Error", message: "Something went wrong!" });
+});
+
 
 
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () =>
-  console.log(`Server running at http: //localhost:${PORT}`)
+  console.log(`Server running at http://localhost:${PORT}`)
 );

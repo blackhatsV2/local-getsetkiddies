@@ -1,13 +1,14 @@
 
 import express from "express";
 import db from "../db/connection.js";
+import { isAuthenticated } from "./middleware.js";
 
 const router = express.Router();
 
 /* -----------------------------
    API: Get last known location
 ----------------------------- */
-router.get("/:child_id", (req, res) => {
+router.get("/:child_id", isAuthenticated, (req, res) => {
   const { child_id } = req.params;
   const sql = `
     SELECT * FROM locations
@@ -66,7 +67,7 @@ router.post("/", (req, res) => {
 /* -----------------------------
    API: Get location history
 ----------------------------- */
-router.get("/history/:child_id", (req, res) => {
+router.get("/history/:child_id", isAuthenticated, (req, res) => {
   const { child_id } = req.params;
   const sql = `
     SELECT latitude, longitude, readable_address, date_time

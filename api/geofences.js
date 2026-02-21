@@ -1,16 +1,16 @@
 
 import express from "express";
 import db from "../db/connection.js";
+import { isAuthenticated } from "./middleware.js";
 
 const router = express.Router();
+router.use(isAuthenticated);
 
 /* -----------------------------
    PAGE: Geofence Setup
 ----------------------------- */
 
 router.get("/setup", (req, res) => {
-  if (!req.session.parent) return res.redirect("/login");
-
   const parent = req.session.parent;
   const selectedChildId = req.query.child_id || null;
 
@@ -55,7 +55,7 @@ router.get("/setup", (req, res) => {
 router.post("/add", (req, res) => {
   const { child_id, name, latitude, longitude, radius } = req.body;
 
-  
+
   const checkSql = "SELECT id FROM geofences WHERE child_id = ?";
   db.query(checkSql, [child_id], (err, results) => {
     if (err) {
@@ -64,7 +64,7 @@ router.post("/add", (req, res) => {
     }
 
     if (results.length > 0) {
-      
+
       const updateSql = `
         UPDATE geofences
         SET name = ?, latitude = ?, longitude = ?, radius = ?, updated_at = NOW()
@@ -79,7 +79,7 @@ router.post("/add", (req, res) => {
       });
 
     } else {
-      
+
       const insertSql = `
         INSERT INTO geofences (child_id, name, latitude, longitude, radius, created_at)
         VALUES (?, ?, ?, ?, ?, NOW())
