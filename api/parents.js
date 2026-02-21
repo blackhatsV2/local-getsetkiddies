@@ -53,11 +53,39 @@ router.post("/login", (req, res) => {
 
     if (result.length === 0) return res.status(401).send("Invalid credentials");
 
-    const match = await bcrypt.compare(password, result[0].password);
+    const parent = result[0];
+    let match = false;
+
+    try {
+      match = await bcrypt.compare(password, parent.password);
+    } catch (e) {
+      console.warn("Bcrypt compare failed, might be plain text:", e.message);
+    }
+
+    if (!match) {
+      // Check for plain text legacy password
+      if (password === parent.password) {
+        console.log(`Legacy plain text password detected for user ${email}. Migrating...`);
+        try {
+          const hashedPassword = await bcrypt.hash(password, 10);
+          const updateSql = "UPDATE parents SET password = ? WHERE id = ?";
+          db.query(updateSql, [hashedPassword, parent.id], (updateErr) => {
+            if (updateErr) {
+              console.error("Error migrating password:", updateErr);
+              // We can still let them log in even if migration failed this time
+            }
+          });
+          match = true;
+        } catch (hashErr) {
+          console.error("Error hashing password during migration:", hashErr);
+        }
+      }
+    }
+
     if (!match) return res.status(401).send("Invalid credentials");
 
     // Don't store password in session
-    const { password: _, ...parentData } = result[0];
+    const { password: _, ...parentData } = parent;
     req.session.parent = parentData;
     res.redirect("/geofence-view");
   });
