@@ -1,6 +1,7 @@
 import express from "express";
 import db from "../db/connection.js";
 import { isAuthenticated } from "./middleware.js";
+import { calculateDistance } from "../utils/geo.js";
 
 const router = express.Router();
 router.use(isAuthenticated);
@@ -131,19 +132,12 @@ router.get("/list/all", (req, res) => {
       let status = "none";
 
       if (row.fence_lat && row.latitude) {
-        const R = 6371e3;
-        const dLat = (row.latitude - row.fence_lat) * Math.PI / 180;
-        const dLon = (row.longitude - row.fence_lng) * Math.PI / 180;
-
-        const a =
-          Math.sin(dLat / 2) ** 2 +
-          Math.cos(row.fence_lat * Math.PI / 180) *
-          Math.cos(row.latitude * Math.PI / 180) *
-          Math.sin(dLon / 2) ** 2;
-
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-        const distance = R * c;
+        const distance = calculateDistance(
+          row.fence_lat,
+          row.fence_lng,
+          row.latitude,
+          row.longitude
+        );
 
         status = distance <= row.radius ? "inside" : "outside";
       }
