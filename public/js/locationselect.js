@@ -27,7 +27,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const lastSeenEl = document.getElementById("lastSeen");
   const scanBtn = document.getElementById("scanBtn");
   const table = document.getElementById("childrenTable");
-
+  let activeChildId = null;
+  let activeChildName = "";
 
   let map = L.map(mapDiv).setView([0, 0], 2);
 
