@@ -28,7 +28,7 @@ router.get("/:child_id", isAuthenticated, (req, res) => {
    API: Save or update location
 ----------------------------- */
 router.post("/", (req, res) => {
-  const { child_id, latitude, longitude, readable_address = "Fetching..." } = req.body;
+  const { child_id, latitude, longitude, readable_address = "Fetching...", source = "GSM" } = req.body;
 
   if (!child_id || !latitude || !longitude)
     return res.status(400).json({ message: "Missing fields" });
@@ -66,16 +66,17 @@ router.post("/", (req, res) => {
         `;
         db.query(updateSql, [latitude, longitude, results[0].id], (err) => {
           if (err) return res.status(500).json({ error: err.message });
-          res.json({ message: "Updated existing record timestamp", alert });
+          res.json({ message: `Updated ${source} record timestamp`, alert });
         });
       } else {
+        // Note: You should update your DB schema to include 'source' column for full effect
         const insertSql = `
           INSERT INTO locations (child_id, latitude, longitude, readable_address, date_time)
           VALUES (?, ?, ?, ?, NOW())
         `;
         db.query(insertSql, [child_id, latitude, longitude, readable_address], (err) => {
           if (err) return res.status(500).json({ error: err.message });
-          res.json({ message: "New location saved", alert });
+          res.json({ message: `New location saved via ${source}`, alert });
         });
       }
     });

@@ -4,7 +4,30 @@ import { isAuthenticated } from "./middleware.js";
 import { calculateDistance } from "../utils/geo.js";
 
 const router = express.Router();
+
+let activeChildId = null; // Global active child for the USB tracker
+
+/* -----------------------------
+   API: Get active child (for Serial Bridge)
+----------------------------- */
+router.get("/get-active", (req, res) => {
+  res.json({ child_id: activeChildId });
+});
+
+// All other routes below are protected
 router.use(isAuthenticated);
+
+/* -----------------------------
+   API: Set active child for tracking
+----------------------------- */
+router.post("/set-active", (req, res) => {
+  const { child_id } = req.body;
+  if (!child_id) return res.status(400).json({ message: "child_id required" });
+
+  activeChildId = child_id;
+  console.log(`[System] Active tracking target set to Child ID: ${activeChildId}`);
+  res.json({ message: "Active tracking child updated", activeChildId });
+});
 
 /* -----------------------------
    API: Register new child

@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   function calculateDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371000; 
+    const R = 6371000;
     const toRad = (deg) => (deg * Math.PI) / 180;
     const dLat = toRad(lat2 - lat1);
     const dLon = toRad(lon2 - lon1);
@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const scanBtn = document.getElementById("scanBtn");
   const table = document.getElementById("childrenTable");
 
-  
+
   let map = L.map(mapDiv).setView([0, 0], 2);
 
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -36,14 +36,14 @@ document.addEventListener("DOMContentLoaded", () => {
     attribution: '© OpenStreetMap'
   }).addTo(map);
 
-  
-  window.pathLine = null;            
-  window.historyMarkers = [];       
-  window.currentFence = null;      
-  window.currentTraceLine = null; 
-  window.currentMarker = null;     
 
- 
+  window.pathLine = null;
+  window.historyMarkers = [];
+  window.currentFence = null;
+  window.currentTraceLine = null;
+  window.currentMarker = null;
+
+
   document.querySelectorAll("tr[data-child-id]").forEach(async (row) => {
     const childId = row.getAttribute("data-child-id");
     const locationCell = row.querySelector(".last-location");
@@ -89,7 +89,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      
+
       const g = geofenceData[0];
       const dist = calculateDistance(
         locationData.latitude,
@@ -108,44 +108,44 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  
+
   function clearPreviousLayers() {
     if (window.historyMarkers && window.historyMarkers.length) {
       window.historyMarkers.forEach(m => {
-        try { map.removeLayer(m); } catch (e) {}
+        try { map.removeLayer(m); } catch (e) { }
       });
       window.historyMarkers = [];
     }
 
 
     if (window.pathLine) {
-      try { map.removeLayer(window.pathLine); } catch (e) {}
+      try { map.removeLayer(window.pathLine); } catch (e) { }
       window.pathLine = null;
     }
 
-    
+
     if (window.currentFence) {
-      try { map.removeLayer(window.currentFence); } catch (e) {}
+      try { map.removeLayer(window.currentFence); } catch (e) { }
       window.currentFence = null;
     }
 
-   
+
     if (window.currentTraceLine) {
-      try { map.removeLayer(window.currentTraceLine); } catch (e) {}
+      try { map.removeLayer(window.currentTraceLine); } catch (e) { }
       window.currentTraceLine = null;
     }
 
-   
+
     if (window.currentMarker) {
-      try { map.removeLayer(window.currentMarker); } catch (e) {}
+      try { map.removeLayer(window.currentMarker); } catch (e) { }
       window.currentMarker = null;
     }
   }
 
-  
+
   trackButtons.forEach((btn) => {
     btn.addEventListener("click", async () => {
-     
+
       clearPreviousLayers();
 
       scanBtn.style.display = "none";
@@ -153,10 +153,17 @@ document.addEventListener("DOMContentLoaded", () => {
       activeChildId = btnChildId;
       activeChildName = btn.getAttribute("data-child-name");
 
+      // Set active child on server for the hardware bridge
+      fetch("/api/children/set-active", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ child_id: btnChildId })
+      }).catch(err => console.error("Error setting active child:", err));
+
       const historyRes = await fetch(`/api/locations/history/${activeChildId}`);
       const historyData = await historyRes.json();
 
-      
+
       const geofenceRes = await fetch(`/api/geofences/${activeChildId}`);
       const geofenceData = await geofenceRes.json();
 
@@ -178,7 +185,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      
+
       const coordsArray = [];
       const totalPoints = historyData.length;
 
@@ -209,24 +216,24 @@ document.addEventListener("DOMContentLoaded", () => {
         window.historyMarkers.push(pastMarker);
       });
 
-      
+
       window.pathLine = L.polyline(coordsArray, {
         color: "blue",
         weight: 3,
         opacity: 0.7
       }).addTo(map);
 
-     
+
       let boundsGroup = L.featureGroup([window.pathLine]);
 
-      
+
       if (Array.isArray(geofenceData) && geofenceData.length > 0) {
         const g = geofenceData[0];
         const fenceLat = g.latitude;
         const fenceLng = g.longitude;
         const radius = g.radius;
 
-        
+
         window.currentFence = L.circle([fenceLat, fenceLng], {
           radius,
           color: "blue",
@@ -236,7 +243,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         boundsGroup.addLayer(window.currentFence);
 
-        
+
         if (historyData.length > 0) {
           const lastLoc = historyData[historyData.length - 1];
 
@@ -249,7 +256,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
           const inside = dist <= radius;
 
-         
+
           const statusCell = document.querySelector(`.geoStatus[data-child-id="${activeChildId}"]`);
           if (statusCell) {
             statusCell.innerHTML = inside
@@ -257,7 +264,7 @@ document.addEventListener("DOMContentLoaded", () => {
               : `<span style="color:red;">Outside (${dist.toFixed(1)} m)</span>`;
           }
 
-          
+
           window.currentTraceLine = L.polyline(
             [
               [lastLoc.latitude, lastLoc.longitude],
@@ -274,7 +281,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
 
-      
+
       try {
         const bounds = boundsGroup.getBounds();
         if (bounds.isValid()) {
@@ -296,7 +303,7 @@ document.addEventListener("DOMContentLoaded", () => {
           try { map.invalidateSize(); } catch (err) { /* ignore */ }
         }, 450);
       }
-      
+
       const lastLocation = historyData[historyData.length - 1];
       const { latitude, longitude, readable_address, date_time } = lastLocation;
 
@@ -308,92 +315,59 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  
+
   scanBtn.addEventListener("click", async () => {
     if (!activeChildId) return alert("Please select a child first.");
-    if (!navigator.geolocation) return alert("Geolocation not supported.");
 
     const originalText = scanBtn.innerHTML;
-    scanBtn.innerHTML = `<span class="loading-spinner"></span> Scanning location...`;
+    scanBtn.innerHTML = `<span class="loading-spinner"></span> Syncing with GPS...`;
     scanBtn.disabled = true;
 
-   
-    if (window.currentMarker) {
-      try { map.removeLayer(window.currentMarker); } catch (e) {}
-      window.currentMarker = null;
-    }
+    try {
+      // Fetch the latest location from the DB (populated by Serial Bridge)
+      const res = await fetch(`/api/locations/${activeChildId}`);
+      const data = await res.json();
 
-    navigator.geolocation.getCurrentPosition(async (position) => {
-      const lat = position.coords.latitude;
-      const lng = position.coords.longitude;
+      if (data.message === "no records yet") {
+        alert("No GPS data received yet from the module. Please ensure the Serial Bridge is running.");
+      } else {
+        const { latitude, longitude, readable_address, date_time } = data;
+        const formattedNow = formatFullDateTime(date_time);
 
-      let readable_address = "";
-      try {
-        const response = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`
-        );
-        const data = await response.json();
-        readable_address = data.display_name || "Unknown location";
-      } catch {
-        readable_address = "Address not found";
-      }
-
-      const now = new Date();
-      const formattedNow = formatFullDateTime(now);
-
-      window.currentMarker = L.marker([lat, lng], {
-        icon: L.icon({
-          iconUrl: "https://maps.gstatic.com/mapfiles/ms2/micons/red-dot.png",
-          iconSize: [32, 32],
-          iconAnchor: [16, 32],
-          popupAnchor: [0, -30],
-        }),
-      })
-        .addTo(map)
-        .bindPopup(`
-          Child Name: <b>${activeChildName}</b><br>
-          ${readable_address}<br>
-          <i>${formattedNow}</i>
-        `)
-        .openPopup();
-
-      map.setView([lat, lng], 15);
-
-      try {
-        const res = await fetch("/api/locations", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            child_id: activeChildId,
-            latitude: lat,
-            longitude: lng,
-            readable_address,
+        // Update Map
+        if (window.currentMarker) map.removeLayer(window.currentMarker);
+        window.currentMarker = L.marker([latitude, longitude], {
+          icon: L.icon({
+            iconUrl: "https://maps.gstatic.com/mapfiles/ms2/micons/red-dot.png",
+            iconSize: [32, 32],
+            iconAnchor: [16, 32],
+            popupAnchor: [0, -30],
           }),
-        });
-        const result = await res.json();
+        }).addTo(map)
+          .bindPopup(`<b>GPS Update for ${activeChildName}</b><br>${readable_address}<br>${formattedNow}`)
+          .openPopup();
 
-        addressEl.innerHTML = `<b>Current location of ${activeChildName}:</b> ${readable_address}`;
-        coordsEl.textContent = `Lat: ${lat}, Lng: ${lng}`;
-        lastSeenEl.innerHTML = `Last updated on <b>${formattedNow}</b>.`;
+        map.setView([latitude, longitude], 15);
+
+        // Update Text
+        addressEl.innerHTML = `<b>Current GPS Location:</b> ${readable_address}`;
+        coordsEl.textContent = `Lat: ${latitude}, Lng: ${longitude}`;
+        lastSeenEl.innerHTML = `Last Sync: <b>${formattedNow}</b>.`;
+
+        // Update Table
         const row = table.querySelector(`tr[data-child-id="${activeChildId}"]`);
         if (row) row.querySelector(".last-location").textContent = readable_address;
-
-        alert("Child's location acquired successfully.");
-      } catch (err) {
-        console.error(err);
-        alert("Error saving location.");
       }
-
+    } catch (err) {
+      console.error(err);
+      alert("Error syncing with GPS data.");
+    } finally {
       scanBtn.innerHTML = originalText;
       scanBtn.disabled = false;
-    }, (err) => {
-      alert("Unable to get your location: " + err.message);
-      scanBtn.innerHTML = originalText;
-      scanBtn.disabled = false;
-    });
+    }
   });
 
-  
+
   // If ?child_id=... is present, auto-click the corresponding Show on Map button
   (function autoOpenFromQuery() {
     try {
@@ -407,5 +381,5 @@ document.addEventListener("DOMContentLoaded", () => {
       }, 250);
     } catch (e) { /* ignore */ }
   })();
-  
+
 });
