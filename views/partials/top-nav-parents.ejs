@@ -22,6 +22,15 @@
       });
     }
 
+    document.addEventListener("click", (e) => {
+      if (sideNav && sideNav.classList.contains("show") && !sideNav.contains(e.target) && !mobileMenuBtn.contains(e.target)) {
+        sideNav.classList.remove("show");
+      }
+      if (mainNavLinks && mainNavLinks.classList.contains("show") && !mainNavLinks.contains(e.target) && !mobileMenuBtn.contains(e.target)) {
+        mainNavLinks.classList.remove("show");
+      }
+    });
+
     if (logoutBtn) {
       logoutBtn.addEventListener("click", async (e) => {
         e.preventDefault(); 
