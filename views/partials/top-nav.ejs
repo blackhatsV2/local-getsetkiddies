@@ -1,8 +1,24 @@
 <header class="top-nav">
+  <button class="hamburger-menu" id="mobile-menu-btn">☰</button>
   <h1>Get Set Kiddies</h1>
-  <nav>
+  <nav id="main-nav-links">
     <a href="/">Home</a>
     <a href="/login">Login</a>
     <a href="/about">About</a>
   </nav>
+
+  <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const mobileMenuBtn = document.getElementById("mobile-menu-btn");
+    const mainNavLinks = document.getElementById("main-nav-links");
+    const sideNav = document.querySelector(".side-nav");
+    
+    if (mobileMenuBtn) {
+      mobileMenuBtn.addEventListener("click", () => {
+        if (mainNavLinks) mainNavLinks.classList.toggle("show");
+        if (sideNav) sideNav.classList.toggle("show");
+      });
+    }
+  });
+  </script>
 </header>

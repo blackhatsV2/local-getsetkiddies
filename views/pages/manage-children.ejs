@@ -2,13 +2,7 @@
 
 <body>
 <style>
-  .content {
-    margin-left: 200px; 
-    padding: 30px 40px;
-    background-color: #ffffff;
-    border-radius: 0 20px 20px 0;
-    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-  }
+
 
   table {
     width: 100%;
@@ -63,21 +57,23 @@
       No registered children found. Go to <a href="/register-child">Add Child</a>.
     </p>
 
-    <table id="children-table">
-      <thead>
-        <tr>
-          <th>Firstname</th>
-          <th>Lastname</th>
-          <th>Age</th>
-          <th>Gender</th>
-          <th>Date Registered</th>
-          <th>Last Location</th>
-          <th>Geofence Status</th>
-          <th>Delete</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+    <div class="table-responsive">
+      <table id="children-table">
+        <thead>
+          <tr>
+            <th>Firstname</th>
+            <th>Lastname</th>
+            <th>Age</th>
+            <th>Gender</th>
+            <th>Date Registered</th>
+            <th>Last Location</th>
+            <th>Geofence Status</th>
+            <th>Delete</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
 
   </main>
 

@@ -2,13 +2,7 @@
 <body>
 <style>
 
-  .content {
-    flex: 1;
-    padding: 30px 40px;
-    background-color: #f9f9f9;
-    border-radius: 0 20px 20px 0;
-    font-family: "Roboto", sans-serif;
-  }
+
 
   .content h2 {
     color: #692e69;
@@ -67,12 +61,7 @@
   }
 
   
-  @media (max-width: 900px) {
-    .content {
-      padding: 20px;
-      border-radius: 0;
-    }
-  }
+
 
   .editGeoBtn {
   background-color: #692e69;
@@ -121,51 +110,53 @@
       <% } else { %>
         
 
-        <table id="geoTable" border="1" style="width:100%; border-collapse: collapse; margin-top: 20px;">
-            <thead>
-              <tr>
-                <th>Child</th>
-                <th>Geofence Name</th>
-                <th>Radius (m)</th>
-                <th>Status</th>
-                <th>Last Known Location</th>
-                <th>Last Updated</th>
-                <th>Action</th> 
-              </tr>
-            </thead>
-            <tbody id="geoBody">
-                <% geofences.forEach(g => { %>
-                <tr 
-                    data-fence-lat="<%= g.fence_lat %>" 
-                    data-fence-lng="<%= g.fence_lng %>"
-                    data-child-lat="<%= g.child_lat || '' %>"
-                    data-child-lng="<%= g.child_lng || '' %>"
-                    data-radius="<%= g.radius %>"
-                >
-                    <td class="child-name"><%= g.firstname %> <%= g.lastname %></td>
-                    <td><%= g.geofence_name %></td>
-                    <td><%= g.radius %></td>
-                    <td class="status-cell">Calculating...</td>
-                    <td class="location-cell">
-                    <% if (g.child_lat && g.child_lng) { %>
-                        <%= g.child_lat.toFixed(5) %>, <%= g.child_lng.toFixed(5) %>
-                    <% } else { %>
-                        <em>No data</em>
-                    <% } %>
-                    </td>
-                    <td><%= g.date_time ? new Date(g.date_time).toLocaleString('en-PH') : '—' %></td>
-                    <td>
-                      <button 
-                        class="deleteChildBtn"
-                        data-child-id="<%= g.child_id %>"
-                        data-child-name="<%= g.firstname %> <%= g.lastname %>">
-                        Delete
-                      </button>
-                    </td>
+        <div class="table-responsive">
+          <table id="geoTable" border="1" style="width:100%; border-collapse: collapse; margin-top: 20px;">
+              <thead>
+                <tr>
+                  <th>Child</th>
+                  <th>Geofence Name</th>
+                  <th>Radius (m)</th>
+                  <th>Status</th>
+                  <th>Last Known Location</th>
+                  <th>Last Updated</th>
+                  <th>Action</th> 
                 </tr>
-                <% }) %>
-            </tbody>
-            </table>
+              </thead>
+              <tbody id="geoBody">
+                  <% geofences.forEach(g => { %>
+                  <tr 
+                      data-fence-lat="<%= g.fence_lat %>" 
+                      data-fence-lng="<%= g.fence_lng %>"
+                      data-child-lat="<%= g.child_lat || '' %>"
+                      data-child-lng="<%= g.child_lng || '' %>"
+                      data-radius="<%= g.radius %>"
+                  >
+                      <td class="child-name"><%= g.firstname %> <%= g.lastname %></td>
+                      <td><%= g.geofence_name %></td>
+                      <td><%= g.radius %></td>
+                      <td class="status-cell">Calculating...</td>
+                      <td class="location-cell">
+                      <% if (g.child_lat && g.child_lng) { %>
+                          <%= g.child_lat.toFixed(5) %>, <%= g.child_lng.toFixed(5) %>
+                      <% } else { %>
+                          <em>No data</em>
+                      <% } %>
+                      </td>
+                      <td><%= g.date_time ? new Date(g.date_time).toLocaleString('en-PH') : '—' %></td>
+                      <td>
+                        <button 
+                          class="deleteChildBtn"
+                          data-child-id="<%= g.child_id %>"
+                          data-child-name="<%= g.firstname %> <%= g.lastname %>">
+                          Delete
+                        </button>
+                      </td>
+                  </tr>
+                  <% }) %>
+              </tbody>
+              </table>
+            </div>
            <!-- end table -->
       <% } %>
       <div id="map" style="height: 600px; width: 100%; border-radius: 8px;"></div>

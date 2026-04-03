@@ -102,10 +102,6 @@
 
   
   @media (max-width: 900px) {
-    .content {
-      padding: 20px;
-      border-radius: 0;
-    }
     #childrenTable th, #childrenTable td {
       padding: 10px;
     }
@@ -138,49 +134,51 @@
       <% if (children.length === 0) { %>
         <p>No registered children found. Go to <a href="/register-child">Add Child</a>.</p>
       <% } else { %>
-        <table border="1" id="childrenTable" style="width: 100%; border-collapse: collapse;">
-          <thead>
-            <tr>
-              <th>Firstname</th>
-              <th>Lastname</th>
-              <th>Age</th>
-              <th>Gender</th>
-              <th>Last Known Location</th>
-              <th>Geofence Status</th> 
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% children.forEach(child => { %>
-              <tr data-child-id="<%= child.id %>">
-                <td><%= child.firstname %></td>
-                <td><%= child.lastname %></td>
-                <td><%= child.child_age %></td>
-                <td><%= child.child_gender %></td>
-                <td class="last-location">Loading...</td>
-                <td class="geoStatus" data-child-id="<%= child.id %>">Checking...</td>
-                <td>
-                  <div style="display:flex; gap:8px; align-items:center;">
-                    <button class="trackBtn"
-                      data-child-id="<%= child.id %>"
-                      data-child-name="<%= child.firstname %>">
-                      Show on Map
-                    </button>
-                    <% if (!child.geofence_id) { %>
-                      <a class="setGeoBtn" href="/api/geofences/setup?child_id=<%= child.id %>"
-                         data-child-id="<%= child.id %>"
-                         data-child-name="<%= child.firstname %> <%= child.lastname %>"
-                         data-lat="<%= child.latitude || '' %>"
-                         data-lng="<%= child.longitude || '' %>">
-                        Set Geofence
-                      </a>
-                    <% } %>
-                  </div>
-                </td>
+        <div class="table-responsive">
+          <table border="1" id="childrenTable" style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr>
+                <th>Firstname</th>
+                <th>Lastname</th>
+                <th>Age</th>
+                <th>Gender</th>
+                <th>Last Known Location</th>
+                <th>Geofence Status</th> 
+                <th>Action</th>
               </tr>
-            <% }) %>
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              <% children.forEach(child => { %>
+                <tr data-child-id="<%= child.id %>">
+                  <td><%= child.firstname %></td>
+                  <td><%= child.lastname %></td>
+                  <td><%= child.child_age %></td>
+                  <td><%= child.child_gender %></td>
+                  <td class="last-location">Loading...</td>
+                  <td class="geoStatus" data-child-id="<%= child.id %>">Checking...</td>
+                  <td>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                      <button class="trackBtn"
+                        data-child-id="<%= child.id %>"
+                        data-child-name="<%= child.firstname %>">
+                        Show on Map
+                      </button>
+                      <% if (!child.geofence_id) { %>
+                        <a class="setGeoBtn" href="/api/geofences/setup?child_id=<%= child.id %>"
+                           data-child-id="<%= child.id %>"
+                           data-child-name="<%= child.firstname %> <%= child.lastname %>"
+                           data-lat="<%= child.latitude || '' %>"
+                           data-lng="<%= child.longitude || '' %>">
+                          Set Geofence
+                        </a>
+                      <% } %>
+                    </div>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
       <% } %>
 
       

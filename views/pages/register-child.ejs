@@ -114,8 +114,9 @@
   
   .register-form {
     background-color: white;
-    border-radius: 20px;
-    width: 380px;
+    width: 100%;
+    max-width: 380px;
+    box-sizing: border-box;
     padding: 40px 35px;
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
     display: flex;
@@ -225,7 +226,8 @@
     }
   }
   .content-column {
-      width: 380px;
+      width: 100%;
+      max-width: 380px;
       margin: 20px auto;
       display: flex;
       flex-direction: column;

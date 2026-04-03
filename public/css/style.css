@@ -100,22 +100,99 @@ body {
   float: right;
   cursor: pointer;
 }
+/* --- MOBILE RESPONSIVENESS AND MENU BUTTONS --- */
+.hamburger-menu {
+  display: none;
+  font-size: 28px;
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 0 10px;
+}
 
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
+}
 
 @media (max-width: 900px) {
-  .content {
-    margin-left: 0;
-    padding: 20px;
-    border-radius: 0;
+  /* Header adjustments */
+  .top-nav {
+    padding: 0 10px;
+  }
+  
+  .top-nav h1 {
+    font-size: 20px;
+    margin-right: auto;
+  }
+  
+  /* Show hamburger */
+  .hamburger-menu {
+    display: block;
+    margin-right: 15px;
   }
 
-  .side-nav {
+  /* Hide main nav links behind a toggle on small screens (if desired) */
+  .top-nav nav {
+    display: none;
+    position: absolute;
+    top: 60px;
+    right: 0;
+    background-color: #692e69;
+    flex-direction: column;
+    padding: 10px 0;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    width: 200px;
+  }
+
+  .top-nav nav.show {
+    display: flex;
+  }
+
+  .top-nav a {
+    margin: 10px 20px;
+    display: block;
+  }
+  
+  .top-nav p {
+    display: none;
+  }
+
+  /* Content area adjustments */
+  .content {
+    margin-left: 0 !important;
+    padding: 20px;
+    border-radius: 0;
     width: 100%;
-    height: auto;
-    position: relative;
+    box-sizing: border-box;
+  }
+
+  /* Side nav adjustments - Slide out style */
+  .side-nav {
+    position: fixed;
+    top: 60px;
+    left: -250px;
+    width: 250px;
+    height: calc(100vh - 60px);
+    transition: left 0.3s ease-in-out;
+    z-index: 999;
+  }
+  
+  .side-nav.show {
+    left: 0;
   }
 
   .main-container {
     flex-direction: column;
+    width: 100%;
+  }
+
+  /* forms padding */
+  .register_child {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 20px 10px;
   }
 }
