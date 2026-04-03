@@ -3,8 +3,8 @@ import { ReadlineParser } from '@serialport/parser-readline';
 import fetch from 'node-fetch';
 
 // CONFIGURATION
-const PORT_PATH = '/dev/ttyUSB0'; // Your Nano's USB Port
-const BAUD_RATE = 115200;       // Must match Serial.begin in Arduino
+const PORT_PATH = '/dev/ttyUSB0'; // arduino pport
+const BAUD_RATE = 115200;    
 
 // UPDATE THIS TO YOUR RENDER APP URL
 const SERVER_URL = 'https://www-local-getsetkiddies.onrender.com/'; 
