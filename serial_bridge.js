@@ -7,7 +7,7 @@ const PORT_PATH = '/dev/ttyUSB0'; // Your Nano's USB Port
 const BAUD_RATE = 115200;       // Must match Serial.begin in Arduino
 
 // UPDATE THIS TO YOUR RENDER APP URL
-const SERVER_URL = 'https://YOUR-APP-NAME.onrender.com'; 
+const SERVER_URL = 'https://www-local-getsetkiddies.onrender.com/'; 
 const API_URL = `${SERVER_URL}/api/locations`; 
 
 console.log(`Starting Pure Serial Bridge on ${PORT_PATH}...`);
