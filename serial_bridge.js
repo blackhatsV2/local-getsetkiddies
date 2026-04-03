@@ -5,7 +5,10 @@ import fetch from 'node-fetch';
 // CONFIGURATION
 const PORT_PATH = '/dev/ttyUSB0'; // Your Nano's USB Port
 const BAUD_RATE = 115200;       // Must match Serial.begin in Arduino
-const API_URL = 'http://localhost:3000/api/locations'; // Local Reliable URL
+
+// UPDATE THIS TO YOUR RENDER APP URL
+const SERVER_URL = 'https://YOUR-APP-NAME.onrender.com'; 
+const API_URL = `${SERVER_URL}/api/locations`; 
 
 console.log(`Starting Pure Serial Bridge on ${PORT_PATH}...`);
 
@@ -36,7 +39,7 @@ parser.on('data', (data) => {
 
 async function pushToAPI(latitude, longitude) {
     try {
-        const activeRes = await fetch('http://localhost:3000/api/children/get-active');
+        const activeRes = await fetch(`${SERVER_URL}/api/children/get-active`);
         const { child_id } = await activeRes.json();
 
         if (!child_id) {
