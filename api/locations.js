@@ -1,5 +1,6 @@
 
 import express from "express";
+import fetch from "node-fetch";
 import db from "../db/connection.js";
 import { isAuthenticated } from "./middleware.js";
 import { calculateDistance } from "../utils/geo.js";
@@ -27,11 +28,26 @@ router.get("/:child_id", isAuthenticated, (req, res) => {
 /* -----------------------------
    API: Save or update location
 ----------------------------- */
-router.post("/", (req, res) => {
-  const { child_id, latitude, longitude, readable_address = "Fetching...", source = "GSM" } = req.body;
+router.post("/", async (req, res) => {
+  let { child_id, latitude, longitude, readable_address, source = "GSM" } = req.body;
 
   if (!child_id || !latitude || !longitude)
     return res.status(400).json({ message: "Missing fields" });
+
+  if (!readable_address || readable_address === "Fetching...") {
+    try {
+      const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`, {
+        headers: {
+          'User-Agent': 'GetSetKiddies/1.0 (NodeJS Backend)'
+        }
+      });
+      const data = await response.json();
+      readable_address = data.display_name || "Unknown location";
+    } catch (err) {
+      console.error("Nominatim fetch error:", err);
+      readable_address = "Unknown location";
+    }
+  }
 
   // 1. Fetch the geofence for this child first
   const geofenceSql = "SELECT latitude, longitude, radius FROM geofences WHERE child_id = ?";

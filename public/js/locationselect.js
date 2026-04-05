@@ -20,6 +20,17 @@ document.addEventListener("DOMContentLoaded", () => {
     return `${formattedDate} – ${formattedTime}`;
   }
 
+  async function getReadableAddress(lat, lng) {
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+      const data = await res.json();
+      return data.display_name || "Unknown location";
+    } catch (err) {
+      console.error("Error fetching address:", err);
+      return "Unknown location";
+    }
+  }
+
   const trackButtons = document.querySelectorAll(".trackBtn");
   const mapDiv = document.getElementById("map");
   const addressEl = document.getElementById("address");
@@ -56,7 +67,10 @@ document.addEventListener("DOMContentLoaded", () => {
       if (data.message === "no records yet") {
         locationCell.textContent = "No records yet";
       } else {
-        const readable = data.readable_address || "Unknown";
+        let readable = data.readable_address || "Unknown";
+        if (readable === "Fetching...") {
+          readable = await getReadableAddress(data.latitude, data.longitude);
+        }
         const formatted = data.date_time ? new Date(data.date_time).toLocaleString("en-US") : "";
         locationCell.innerHTML = `${readable}<br><small>${formatted}</small>`;
       }
@@ -190,8 +204,14 @@ document.addEventListener("DOMContentLoaded", () => {
       const coordsArray = [];
       const totalPoints = historyData.length;
 
-      historyData.forEach((loc, index) => {
-        const { latitude, longitude, readable_address, date_time } = loc;
+      for (let index = 0; index < totalPoints; index++) {
+        const loc = historyData[index];
+        let { latitude, longitude, readable_address, date_time } = loc;
+
+        if (!readable_address || readable_address === "Fetching...") {
+          readable_address = await getReadableAddress(latitude, longitude);
+        }
+
         coordsArray.push([latitude, longitude]);
 
         const isLast = index === totalPoints - 1;
@@ -215,7 +235,7 @@ document.addEventListener("DOMContentLoaded", () => {
         `);
 
         window.historyMarkers.push(pastMarker);
-      });
+      }
 
 
       window.pathLine = L.polyline(coordsArray, {
@@ -306,7 +326,11 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       const lastLocation = historyData[historyData.length - 1];
-      const { latitude, longitude, readable_address, date_time } = lastLocation;
+      let { latitude, longitude, readable_address, date_time } = lastLocation;
+
+      if (!readable_address || readable_address === "Fetching...") {
+        readable_address = await getReadableAddress(latitude, longitude);
+      }
 
       addressEl.innerHTML = `<p>Last known location of <b>${activeChildName}</b> is at <b><i>${readable_address}.</i></b></p>`;
       coordsEl.textContent = `Latitude: ${latitude}, Longitude: ${longitude}`;
@@ -332,7 +356,12 @@ document.addEventListener("DOMContentLoaded", () => {
       if (data.message === "no records yet") {
         alert("No GPS data received yet from the module. Please ensure the Serial Bridge is running.");
       } else {
-        const { latitude, longitude, readable_address, date_time } = data;
+        let { latitude, longitude, readable_address, date_time } = data;
+        
+        if (!readable_address || readable_address === "Fetching...") {
+          readable_address = await getReadableAddress(latitude, longitude);
+        }
+
         const formattedNow = formatFullDateTime(date_time);
 
         // Update Map
