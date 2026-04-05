@@ -78,8 +78,22 @@
   background-color: #8b3c8b;
 }
 
-  
+  .updateLocBtn {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+    margin-bottom: 5px;
+    width: 100%;
+  }
+  .updateLocBtn:hover { background-color: #218838; }
+
   .deleteChildBtn {
+    width: 100%;
     background-color: #d9534f;
     color: white;
     border: none;
@@ -145,6 +159,11 @@
                       </td>
                       <td><%= g.date_time ? new Date(g.date_time).toLocaleString('en-PH') : '—' %></td>
                       <td>
+                        <button 
+                          class="updateLocBtn"
+                          data-child-id="<%= g.child_id %>">
+                          Get Device Location
+                        </button>
                         <button 
                           class="deleteChildBtn"
                           data-child-id="<%= g.child_id %>"
@@ -388,6 +407,52 @@ document.querySelectorAll(".deleteChildBtn").forEach((btn) => {
       console.error("Delete error:", err);
       alert("Network error deleting child");
     }
+  });
+});
+
+document.querySelectorAll(".updateLocBtn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const childId = btn.dataset.childId;
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser.");
+      return;
+    }
+
+    btn.textContent = "Locating...";
+    btn.disabled = true;
+
+    navigator.geolocation.getCurrentPosition(async (position) => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+      
+      try {
+        const res = await fetch("/api/locations", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            child_id: childId,
+            latitude: lat,
+            longitude: lng,
+            source: "Browser"
+          })
+        });
+        
+        if (!res.ok) throw new Error("Failed to update location");
+        
+        alert("Location updated successfully from your device!");
+        window.location.reload();
+      } catch (err) {
+        console.error("Error updating location:", err);
+        alert("Error updating location.");
+        btn.textContent = "Get Device Location";
+        btn.disabled = false;
+      }
+    }, (error) => {
+      console.error("Error getting geolocation:", error);
+      alert("Could not get your location. Please ensure location permissions are granted in your browser.");
+      btn.textContent = "Get Device Location";
+      btn.disabled = false;
+    });
   });
 });
 
