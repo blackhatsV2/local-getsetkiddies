@@ -6,8 +6,8 @@ import fetch from 'node-fetch';
 const PORT_PATH = '/dev/ttyUSB0'; // arduino pport
 const BAUD_RATE = 115200;    
 
-// UPDATE THIS TO YOUR RENDER APP URL
-const SERVER_URL = 'https://www-local-getsetkiddies.onrender.com/'; 
+// UPDATE THIS TO YOUR NORTHFLANK APP URL (found in the Northflank dashboard after deployment)
+const SERVER_URL = process.env.SERVER_URL || 'https://www--official-getsetkiddies--wgsml27zypcz.code.run'; 
 const API_URL = `${SERVER_URL}/api/locations`; 
 
 console.log(`Starting Pure Serial Bridge on ${PORT_PATH}...`);

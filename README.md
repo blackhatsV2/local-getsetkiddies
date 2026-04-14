@@ -1,4 +1,4 @@
-# GetSetKiddies 🧒📍
+# GetSetKiddies
 
 A secure child GPS tracking application built with Node.js, Express, and MySQL.
 
