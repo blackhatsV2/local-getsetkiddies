@@ -151,7 +151,17 @@ app.use((err, req, res, next) => {
 
 
 
+
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () =>
-  console.log(`Server running at http://localhost:${PORT}`)
-);
+const HOST = '0.0.0.0';
+
+// Ensure SESSION_SECRET is set or use a placeholder to avoid crash
+if (!process.env.SESSION_SECRET) {
+  console.warn("WARNING: SESSION_SECRET is not set in environment variables. Using a temporary secret for now.");
+}
+
+app.listen(PORT, HOST, () => {
+  console.log(`Server is running!`);
+  console.log(`- Local: http://localhost:${PORT}`);
+  console.log(`- Network: http://${HOST}:${PORT}`);
+});
