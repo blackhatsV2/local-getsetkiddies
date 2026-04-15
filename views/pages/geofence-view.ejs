@@ -356,20 +356,13 @@ async function renderGeofences() {
         address = await getReadableAddress(g.child_lat, g.child_lng);
       }
 
-      // Add the detailed interactive header (permanent for latest)
+      // Add the detailed interactive header (open by default, closeable)
       childMarker.bindPopup(createDetailedLabel("LATEST LOCATION", g.firstname + " " + g.lastname, g.date_time, address, true), {
-        className: 'map-label-popup',
-        closeButton: true
-      });
-
-      childMarker.bindTooltip(createDetailedLabel("LATEST LOCATION", g.firstname + " " + g.lastname, g.date_time, address, true), {
-        permanent: true,
-        direction: 'top',
-        className: 'map-location-label latest',
-        interactive: true
-      }).on('tooltipclick', () => {
-        childMarker.openPopup();
-      });
+        className: 'map-label-popup latest',
+        closeButton: true,
+        autoClose: false,
+        closeOnClick: false
+      }).openPopup();
 
       const row = document.querySelector(
         `tr[data-child-lat="${g.child_lat}"][data-child-lng="${g.child_lng}"]`

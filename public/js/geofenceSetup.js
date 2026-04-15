@@ -100,19 +100,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         marker = L.marker([lat, lng]).addTo(map)
           .bindPopup(createDetailedLabel("LATEST LOCATION", activeChildName, "Last Known Location", readable, true), {
-            className: 'map-label-popup',
-            closeButton: true
-          })
-          .bindTooltip(createDetailedLabel("LATEST LOCATION", activeChildName, "Last Known Location", readable, true), {
-            permanent: true,
-            direction: 'top',
-            className: 'map-location-label latest',
-            interactive: true
-          });
-        
-        marker.on('tooltipclick', () => {
-          marker.openPopup();
-        });
+            className: 'map-label-popup latest',
+            closeButton: true,
+            autoClose: false,
+            closeOnClick: false
+          }).openPopup();
         infoEl.innerHTML = `
           <h1><b>Setting Geofence for: ${activeChildName}</b></h1><br>
           Last known location: ${lat.toFixed(5)}, ${lng.toFixed(5)}.

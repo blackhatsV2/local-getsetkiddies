@@ -380,6 +380,30 @@ body {
   color: #d9534f;
 }
 
+/* Latest variant for popups */
+.map-label-popup.latest .leaflet-popup-content-wrapper {
+  background-color: #692e69;
+  color: white;
+  border-color: #ffffff;
+}
+.map-label-popup.latest .leaflet-popup-tip {
+  background: #692e69;
+}
+.map-label-popup.latest .leaflet-popup-close-button {
+  color: #ffffff;
+}
+.map-label-popup.latest .label-wrapper b {
+  color: #ffccff;
+  border-color: rgba(255,255,255,0.2);
+}
+.map-label-popup.latest .label-wrapper .label-child {
+  color: #ffffff;
+}
+.map-label-popup.latest .label-wrapper .label-time,
+.map-label-popup.latest .label-wrapper .label-address {
+  color: #f0f0f0;
+}
+
 /* Re-use label styling inside popups */
 .map-label-popup .label-wrapper {
   padding: 8px 12px;

@@ -261,14 +261,10 @@ document.addEventListener("DOMContentLoaded", () => {
               })
             }).addTo(map)
               .bindPopup(createDetailedLabel("LATEST LOCATION", activeChildName, new Date(), readable, true), {
-                className: 'map-label-popup',
-                closeButton: true
-              })
-              .bindTooltip(createDetailedLabel("LATEST LOCATION", activeChildName, new Date(), readable, true), {
-                permanent: true,
-                direction: 'top',
-                className: 'map-location-label latest',
-                interactive: true
+                className: 'map-label-popup latest',
+                closeButton: true,
+                autoClose: false,
+                closeOnClick: false
               });
 
             window.currentMarker.openPopup();
@@ -334,17 +330,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (isLast) {
           pastMarker.bindPopup(createDetailedLabel("LATEST LOCATION", activeChildName, date_time, readable_address, true), {
-            className: 'map-label-popup',
-            closeButton: true
+            className: 'map-label-popup latest',
+            closeButton: true,
+            autoClose: false,
+            closeOnClick: false
           });
-          pastMarker.bindTooltip(createDetailedLabel("LATEST LOCATION", activeChildName, date_time, readable_address, true), {
-            permanent: true,
-            direction: 'top',
-            className: 'map-location-label latest',
-            interactive: true
-          }).on('tooltipclick', () => {
-            pastMarker.openPopup();
-          });
+          pastMarker.openPopup();
         } else {
           // Past locations only show label on click via Popup
           pastMarker.bindPopup(createDetailedLabel("PAST LOCATION", activeChildName, date_time, readable_address, false), {
@@ -498,20 +489,12 @@ document.addEventListener("DOMContentLoaded", () => {
               }),
             }).addTo(map)
               .bindPopup(createDetailedLabel("LATEST LOCATION", activeChildName, new Date(), readable, true), {
-                className: 'map-label-popup',
-                closeButton: true
-              })
-              .bindTooltip(createDetailedLabel("LATEST LOCATION", activeChildName, new Date(), readable, true), {
-                permanent: true,
-                direction: 'top',
-                className: 'map-location-label latest',
-                interactive: true
+                className: 'map-label-popup latest',
+                closeButton: true,
+                autoClose: false,
+                closeOnClick: false
               });
             
-            window.currentMarker.on('tooltipclick', () => {
-              window.currentMarker.openPopup();
-            });
-
             window.currentMarker.openPopup();
 
             map.setView([lat, lng], 15);
@@ -551,20 +534,12 @@ document.addEventListener("DOMContentLoaded", () => {
           }),
         }).addTo(map)
           .bindPopup(createDetailedLabel("LATEST LOCATION", activeChildName, date_time, readable_address, true), {
-            className: 'map-label-popup',
-            closeButton: true
-          })
-          .bindTooltip(createDetailedLabel("LATEST LOCATION", activeChildName, date_time, readable_address, true), {
-            permanent: true,
-            direction: 'top',
-            className: 'map-location-label latest',
-            interactive: true
+            className: 'map-label-popup latest',
+            closeButton: true,
+            autoClose: false,
+            closeOnClick: false
           });
         
-        window.currentMarker.on('tooltipclick', () => {
-          window.currentMarker.openPopup();
-        });
-
         window.currentMarker.openPopup();
 
         map.setView([latitude, longitude], 15);
