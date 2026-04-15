@@ -117,7 +117,10 @@
     <h3>Check the Status column to see if child is within the Geofence.</h3>
 
     
-    <div id="geoNotification" class="geo-notif" role="status" aria-live="polite" hidden></div>
+    <div id="geoNotification" class="geo-notif" role="status" aria-live="polite" style="display: none;">
+      <span id="geoNotifText"></span>
+      <button id="closeGeoNotif" class="close-geo-btn" aria-label="Close warning">&times;</button>
+    </div>
 
       <% if (geofences.length === 0) { %>
         <p>No Records yet. Go to <a href="/register-child">Add Child</a>.</p>
@@ -185,28 +188,63 @@
   <style>
   
   .geo-notif {
-  width: 100%;
-  background: #ff3b3b;
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 500px;
+  background: linear-gradient(135deg, #ff3b3b, #d9534f);
   color: #fff;
-  font-size: 1.2rem;
-  font-weight: 700;
-  text-align: center;
-  border-radius: 10px;
-  margin: 20px 0;
-  padding: 16px;
-  box-shadow: 0 6px 15px rgba(255, 0, 0, 0.3);
-  border: 3px solid #fff;
-  animation: pulseAlert 1s infinite;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-align: left;
+  border-radius: 12px;
+  padding: 16px 45px 16px 20px;
+  box-shadow: 0 10px 30px rgba(255, 0, 0, 0.4);
+  border: 2px solid #fff;
+  z-index: 2000;
+  display: none;
+  align-items: center;
+  animation: slideInDown 0.4s ease-out, pulseAlert 2s infinite;
 }
 
-/* Pulse animation for visibility */
+.close-geo-btn {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: white;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+  line-height: 1;
+  opacity: 0.8;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.close-geo-btn:hover {
+  opacity: 1;
+  transform: translateY(-50%) scale(1.1);
+}
+
+@keyframes slideInDown {
+  from {
+    transform: translate(-50%, -20px);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}
+
 @keyframes pulseAlert {
-  0% { transform: scale(1); box-shadow: 0 0 15px rgba(255, 0, 0, 0.6); }
-  50% { transform: scale(1.03); box-shadow: 0 0 25px rgba(255, 0, 0, 0.8); }
-  100% { transform: scale(1); box-shadow: 0 0 15px rgba(255, 0, 0, 0.6); }
+  0% { box-shadow: 0 0 15px rgba(255, 0, 0, 0.4); }
+  50% { box-shadow: 0 0 25px rgba(255, 0, 0, 0.7); }
+  100% { box-shadow: 0 0 15px rgba(255, 0, 0, 0.4); }
 }
   </style>
   
@@ -328,11 +366,11 @@ async function renderGeofences() {
 
   (function showGeoSummary() {
     const notifEl = document.getElementById("geoNotification");
-    if (!notifEl) return;
+    const notifText = document.getElementById("geoNotifText");
+    if (!notifEl || !notifText) return;
 
     if (outsideList.length === 0) {
-      notifEl.hidden = true;
-      notifEl.textContent = "";
+      notifEl.style.display = "none";
       return;
     }
 
@@ -360,9 +398,14 @@ async function renderGeofences() {
       ? `Warning! 1 child is outside the geofence. Check the Status column.`
       : `Warning! ${count} children are outside the geofence. Check the Status column.`;
 
-    notifEl.textContent = displayMessage;
-    notifEl.hidden = false;
-    setTimeout(() => notifEl.hidden = true, 20000); 
+    notifText.textContent = displayMessage;
+    notifEl.style.display = "flex";
+
+    // Auto-hide after 20 seconds, clearing any previous timer
+    if (window.geoTimeout) clearTimeout(window.geoTimeout);
+    window.geoTimeout = setTimeout(() => {
+      notifEl.style.display = "none";
+    }, 20000); 
 
 
     (function speakCountOnly() {
@@ -454,6 +497,14 @@ document.querySelectorAll(".updateLocBtn").forEach(btn => {
       btn.disabled = false;
     });
   });
+});
+// Handle manual dismissal of geofence warning
+document.getElementById("closeGeoNotif")?.addEventListener("click", () => {
+    const notifEl = document.getElementById("geoNotification");
+    if (notifEl) {
+        notifEl.style.display = "none";
+        if (window.geoTimeout) clearTimeout(window.geoTimeout);
+    }
 });
 
 </script>
