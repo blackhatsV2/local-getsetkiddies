@@ -361,7 +361,23 @@ body {
 }
 
 .map-label-popup .leaflet-popup-close-button {
-  display: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #692e69;
+  font-size: 20px;
+  font-weight: bold;
+  width: 24px;
+  height: 24px;
+  top: 4px;
+  right: 4px;
+  padding: 0;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+.map-label-popup .leaflet-popup-close-button:hover {
+  opacity: 1;
+  color: #d9534f;
 }
 
 /* Re-use label styling inside popups */

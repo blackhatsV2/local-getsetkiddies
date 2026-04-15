@@ -41,12 +41,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function getReadableAddress(lat, lng) {
     try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+      const res = await fetch(`/api/locations/reverse-geocode?lat=${lat}&lng=${lng}`);
       const data = await res.json();
-      return data.display_name || "Unknown location";
+      return data.address || `${parseFloat(lat).toFixed(5)}, ${parseFloat(lng).toFixed(5)}`;
     } catch (err) {
       console.error("Error fetching address:", err);
-      return "Unknown location";
+      // Fallback to coordinates on failure
+      return `${parseFloat(lat).toFixed(5)}, ${parseFloat(lng).toFixed(5)}`;
     }
   }
 
@@ -94,29 +95,34 @@ document.addEventListener("DOMContentLoaded", () => {
   window.currentMarker = null;
 
 
-  document.querySelectorAll("tr[data-child-id]").forEach(async (row) => {
-    const childId = row.getAttribute("data-child-id");
-    const locationCell = row.querySelector(".last-location");
+  (async function loadTableLocations() {
+    const locationRows = document.querySelectorAll("tr[data-child-id]");
+    for (const row of locationRows) {
+      const childId = row.getAttribute("data-child-id");
+      const locationCell = row.querySelector(".last-location");
 
-    try {
-      const res = await fetch(`/api/locations/${childId}`);
-      const data = await res.json();
+      try {
+        const res = await fetch(`/api/locations/${childId}`);
+        const data = await res.json();
 
-      if (data.message === "no records yet") {
-        locationCell.textContent = "No records yet";
-      } else {
-        let readable = data.readable_address || "Unknown";
-        if (readable === "Fetching...") {
-          readable = await getReadableAddress(data.latitude, data.longitude);
+        if (data.message === "no records yet") {
+          locationCell.textContent = "No records yet";
+        } else {
+          let readable = data.readable_address || "Unknown";
+          if (readable === "Fetching..." || readable === "Unknown location" || readable === "Unknown") {
+            readable = await getReadableAddress(data.latitude, data.longitude);
+            // Delay after Nominatim call to respect rate limits
+            await new Promise(r => setTimeout(r, 1100));
+          }
+          const formatted = data.date_time ? new Date(data.date_time).toLocaleString("en-US") : "";
+          locationCell.innerHTML = `${readable}<br><small>${formatted}</small>`;
         }
-        const formatted = data.date_time ? new Date(data.date_time).toLocaleString("en-US") : "";
-        locationCell.innerHTML = `${readable}<br><small>${formatted}</small>`;
+      } catch (err) {
+        console.error("Error fetching location for table:", err);
+        locationCell.textContent = "Error loading";
       }
-    } catch (err) {
-      console.error("Error fetching location for table:", err);
-      locationCell.textContent = "Error loading";
     }
-  });
+  })();
 
 
   document.querySelectorAll("tr[data-child-id]").forEach(async (row) => {
@@ -253,7 +259,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }).addTo(map)
               .bindPopup(createDetailedLabel("LATEST LOCATION", activeChildName, new Date(), readable, true), {
                 className: 'map-label-popup',
-                closeButton: false
+                closeButton: true
               })
               .bindTooltip(createDetailedLabel("LATEST LOCATION", activeChildName, new Date(), readable, true), {
                 permanent: true,
@@ -303,7 +309,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const loc = historyData[index];
         let { latitude, longitude, readable_address, date_time } = loc;
 
-        if (!readable_address || readable_address === "Fetching...") {
+        if (!readable_address || readable_address === "Fetching..." || readable_address === "Unknown location") {
           readable_address = await getReadableAddress(latitude, longitude);
         }
 
@@ -326,7 +332,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (isLast) {
           pastMarker.bindPopup(createDetailedLabel("LATEST LOCATION", activeChildName, date_time, readable_address, true), {
             className: 'map-label-popup',
-            closeButton: false
+            closeButton: true
           });
           pastMarker.bindTooltip(createDetailedLabel("LATEST LOCATION", activeChildName, date_time, readable_address, true), {
             permanent: true,
@@ -340,7 +346,7 @@ document.addEventListener("DOMContentLoaded", () => {
           // Past locations only show label on click via Popup
           pastMarker.bindPopup(createDetailedLabel("PAST LOCATION", activeChildName, date_time, readable_address, false), {
             className: 'map-label-popup',
-            closeButton: false
+            closeButton: true
           });
         }
 
@@ -438,7 +444,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const lastLocation = historyData[historyData.length - 1];
       let { latitude, longitude, readable_address, date_time } = lastLocation;
 
-      if (!readable_address || readable_address === "Fetching...") {
+      if (!readable_address || readable_address === "Fetching..." || readable_address === "Unknown location") {
         readable_address = await getReadableAddress(latitude, longitude);
       }
 
@@ -490,7 +496,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }).addTo(map)
               .bindPopup(createDetailedLabel("LATEST LOCATION", activeChildName, new Date(), readable, true), {
                 className: 'map-label-popup',
-                closeButton: false
+                closeButton: true
               })
               .bindTooltip(createDetailedLabel("LATEST LOCATION", activeChildName, new Date(), readable, true), {
                 permanent: true,
@@ -525,7 +531,7 @@ document.addEventListener("DOMContentLoaded", () => {
       } else {
         let { latitude, longitude, readable_address, date_time } = data;
         
-        if (!readable_address || readable_address === "Fetching...") {
+        if (!readable_address || readable_address === "Fetching..." || readable_address === "Unknown location") {
           readable_address = await getReadableAddress(latitude, longitude);
         }
 
@@ -543,7 +549,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }).addTo(map)
           .bindPopup(createDetailedLabel("LATEST LOCATION", activeChildName, date_time, readable_address, true), {
             className: 'map-label-popup',
-            closeButton: false
+            closeButton: true
           })
           .bindTooltip(createDetailedLabel("LATEST LOCATION", activeChildName, date_time, readable_address, true), {
             permanent: true,

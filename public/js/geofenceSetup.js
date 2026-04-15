@@ -18,14 +18,13 @@ document.addEventListener("DOMContentLoaded", () => {
  
   async function getReadableAddress(lat, lng) {
     try {
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
-      );
+      const res = await fetch(`/api/locations/reverse-geocode?lat=${lat}&lng=${lng}`);
       const data = await res.json();
-      return data.display_name || "Address not found";
+      return data.address || `${parseFloat(lat).toFixed(5)}, ${parseFloat(lng).toFixed(5)}`;
     } catch (err) {
       console.error("Error fetching address:", err);
-      return "Unknown location";
+      // Fallback to coordinates
+      return `${parseFloat(lat).toFixed(5)}, ${parseFloat(lng).toFixed(5)}`;
     }
   }
 
@@ -46,7 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
   async function loadAddresses() {
   const rows = [...document.querySelectorAll("#childrenTable tr[data-child-id]")];
 
-  await Promise.all(rows.map(async (row) => {
+  for (const row of rows) {
     const lat = parseFloat(row.dataset.lat);
     const lng = parseFloat(row.dataset.lng);
     const cell = row.querySelector(".location-cell");
@@ -54,8 +53,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!isNaN(lat) && !isNaN(lng)) {
       const address = await getReadableAddress(lat, lng);
       cell.textContent = address;
+      // Delay between requests to respect Nominatim rate limits
+      await new Promise(r => setTimeout(r, 1100));
     }
-  }));
+  }
 }
 
   loadAddresses();
@@ -94,7 +95,7 @@ document.addEventListener("DOMContentLoaded", () => {
         marker = L.marker([lat, lng]).addTo(map)
           .bindPopup(createDetailedLabel("LATEST LOCATION", activeChildName, "Last Known Location", readable, true), {
             className: 'map-label-popup',
-            closeButton: false
+            closeButton: true
           })
           .bindTooltip(createDetailedLabel("LATEST LOCATION", activeChildName, "Last Known Location", readable, true), {
             permanent: true,
@@ -143,7 +144,7 @@ document.addEventListener("DOMContentLoaded", () => {
     marker = L.marker([lat, lng]).addTo(map)
       .bindPopup(createDetailedLabel("GEOFENCE SETUP", activeChildName, "New Center Selection", `${lat.toFixed(5)}, ${lng.toFixed(5)}`, false), {
         className: 'map-label-popup',
-        closeButton: false
+        closeButton: true
       });
 
     marker.on('tooltipclick', () => {

@@ -278,14 +278,13 @@ function distance(lat1, lon1, lat2, lon2) {
 
 async function getReadableAddress(lat, lng) {
   try {
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
-    );
+    const res = await fetch(`/api/locations/reverse-geocode?lat=${lat}&lng=${lng}`);
     const data = await res.json();
-    return data.display_name || "Address not found";
+    return data.address || `${parseFloat(lat).toFixed(5)}, ${parseFloat(lng).toFixed(5)}`;
   } catch (err) {
     console.error("Error fetching address:", err);
-    return "Unknown location";
+    // Fallback to coordinates
+    return `${parseFloat(lat).toFixed(5)}, ${parseFloat(lng).toFixed(5)}`;
   }
 }
 
@@ -321,7 +320,7 @@ async function renderGeofences() {
     // Add geofence label (hidden by default, shown on click via Popup)
     fenceCircle.bindPopup(createDetailedLabel("GEOFENCE ZONE", g.geofence_name, "Radius: " + g.radius + "m", g.firstname + " " + g.lastname, false), {
       className: 'map-label-popup',
-      closeButton: false
+      closeButton: true
     });
 
     allCoords.push(fenceCenter);
@@ -348,13 +347,15 @@ async function renderGeofences() {
         fillOpacity: 0.9
       }).addTo(map);
 
+      // Small delay between Nominatim requests to avoid rate limiting
+      await new Promise(r => setTimeout(r, 1100));
       // Fetch address first if needed to include in label
       const address = await getReadableAddress(g.child_lat, g.child_lng);
 
       // Add the detailed interactive header (permanent for latest)
       childMarker.bindPopup(createDetailedLabel("LATEST LOCATION", g.firstname + " " + g.lastname, g.date_time, address, true), {
         className: 'map-label-popup',
-        closeButton: false
+        closeButton: true
       });
 
       childMarker.bindTooltip(createDetailedLabel("LATEST LOCATION", g.firstname + " " + g.lastname, g.date_time, address, true), {

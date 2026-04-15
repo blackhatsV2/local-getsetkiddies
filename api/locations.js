@@ -8,6 +8,36 @@ import { calculateDistance } from "../utils/geo.js";
 const router = express.Router();
 
 /* -----------------------------
+   API: Proxy Reverse Geocode
+----------------------------- */
+router.get("/reverse-geocode", isAuthenticated, async (req, res) => {
+  const { lat, lng } = req.query;
+
+  if (!lat || !lng) {
+    return res.status(400).json({ error: "Missing latitude or longitude" });
+  }
+
+  try {
+    const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`, {
+      headers: {
+        'User-Agent': 'GetSetKiddies/1.0 (NodeJS Backend; contact: admin@getsetkiddies.local)'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Nominatim error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    res.json({ address: data.display_name || null });
+  } catch (err) {
+    console.error("Nominatim proxy error:", err);
+    res.status(500).json({ error: "Geocoding failed" });
+  }
+});
+
+
+/* -----------------------------
    API: Get last known location
 ----------------------------- */
 router.get("/:child_id", isAuthenticated, (req, res) => {
@@ -34,7 +64,7 @@ router.post("/", async (req, res) => {
   if (!child_id || !latitude || !longitude)
     return res.status(400).json({ message: "Missing fields" });
 
-  if (!readable_address || readable_address === "Fetching...") {
+  if (!readable_address || readable_address === "Fetching..." || readable_address === "Unknown location") {
     try {
       const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`, {
         headers: {
