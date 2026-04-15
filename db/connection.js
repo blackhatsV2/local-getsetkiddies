@@ -10,7 +10,7 @@ if (missingEnv.length > 0) {
   console.error(`ERROR: Missing database environment variables: ${missingEnv.join(', ')}`);
 }
 
-const db = mysql.createConnection({
+const db = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
@@ -18,12 +18,20 @@ const db = mysql.createConnection({
   port: process.env.DB_PORT || 3306,
   ssl: {
     rejectUnauthorized: false
-  }
+  },
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
 });
 
-db.connect((err) => {
-  if (err) console.error("Database connection failed:", err.message);
-  else console.log("Connected to MySQL database");
+// Verify connection pool on startup
+db.getConnection((err, connection) => {
+  if (err) {
+    console.error("Database connection failed:", err.message);
+  } else {
+    console.log("Connected to MySQL database (Pool)");
+    connection.release(); // Return the connection to the pool
+  }
 });
 
 export default db;
