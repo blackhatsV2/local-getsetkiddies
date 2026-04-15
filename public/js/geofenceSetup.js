@@ -29,6 +29,19 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  function createDetailedLabel(type, childName, dateTime, address, isLatest) {
+    const formattedDate = dateTime ? (typeof dateTime === 'string' ? new Date(dateTime).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : dateTime) : "...";
+    
+    return `
+      <div class="label-wrapper">
+        <b>${type}</b>
+        <div class="label-child">${childName}</div>
+        <div class="label-time">${formattedDate}</div>
+        <div class="label-address">${address || "Location pending..."}</div>
+      </div>
+    `;
+  }
+
   
   async function loadAddresses() {
   const rows = [...document.querySelectorAll("#childrenTable tr[data-child-id]")];
@@ -75,11 +88,14 @@ document.addEventListener("DOMContentLoaded", () => {
       
       if (!isNaN(lat) && !isNaN(lng)) {
         map.setView([lat, lng], 15);
+        
+        const readable = await getReadableAddress(lat, lng);
+
         marker = L.marker([lat, lng]).addTo(map)
-          .bindTooltip(`latest location: ${activeChildName}`, {
+          .bindTooltip(createDetailedLabel("LATEST LOCATION", activeChildName, "Last Known Location", readable, true), {
             permanent: true,
             direction: 'top',
-            className: 'child-location-header',
+            className: 'map-location-label latest',
             interactive: true
           });
         
@@ -124,10 +140,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (circle) map.removeLayer(circle);
 
     marker = L.marker([lat, lng]).addTo(map)
-      .bindTooltip(`latest location: ${activeChildName}`, {
-        permanent: true,
+      .bindTooltip(createDetailedLabel("GEOFENCE SETUP", activeChildName, "New Center Selection", `${lat.toFixed(5)}, ${lng.toFixed(5)}`, false), {
+        permanent: false,
         direction: 'top',
-        className: 'child-location-header',
+        className: 'map-location-label',
         interactive: true
       });
 

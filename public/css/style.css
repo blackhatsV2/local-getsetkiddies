@@ -311,27 +311,92 @@ body {
   to { transform: scale(1); opacity: 1; }
 }
 
-/* Leaflet Custom Tooltip (Headers) */
-.child-location-header {
-  background-color: #692e69;
-  color: white;
-  border: 2px solid white;
-  border-radius: 20px;
-  padding: 5px 12px;
-  font-weight: 600;
+/* Leaflet Custom Labels */
+.map-location-label {
+  background-color: #ffffff;
+  color: #333;
+  border: 2px solid #692e69;
+  border-radius: 12px;
+  padding: 8px 12px;
   font-size: 13px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-  white-space: nowrap;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  white-space: normal !important; /* Force wrap */
+  min-width: 160px;
+  max-width: 300px; /* Increased from 250px */
   cursor: pointer;
-  transition: transform 0.2s, background-color 0.2s;
+  line-height: 1.4;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
-.child-location-header:hover {
-  background-color: #8b3c8b;
-  transform: scale(1.05);
+/* Ensure popups also wrap long text */
+.leaflet-popup-content {
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 13px 19px;
+  max-width: 300px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.map-location-label b {
+  color: #692e69;
+  display: block;
+  margin-bottom: 4px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 2px;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+}
+
+.map-location-label .label-child {
+  color: #000;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.map-location-label .label-time {
+  color: #666;
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.map-location-label .label-address {
+  color: #444;
+  font-size: 12px;
+  margin-top: 5px;
+  font-style: normal;
+  display: block;
+  word-wrap: break-word;          /* For older browsers */
+  overflow-wrap: break-word;      /* For modern browsers */
+}
+
+/* Latest location specific style */
+.map-location-label.latest {
+  background-color: #692e69;
+  color: white;
+  border-color: #ffffff;
+}
+.map-location-label.latest b {
+  color: #ffccff;
+  border-color: rgba(255,255,255,0.2);
+}
+.map-location-label.latest .label-child {
+  color: #ffffff;
+}
+.map-location-label.latest .label-time,
+.map-location-label.latest .label-address {
+  color: #f0f0f0;
 }
 
 /* Adjust the arrow color */
-.leaflet-tooltip-top.child-location-header::before {
+.leaflet-tooltip-top.map-location-label::before {
   border-top-color: #692e69;
+}
+.leaflet-tooltip-top.map-location-label:not(.latest)::before {
+  border-top-color: #692e69; /* Keep brand color for border */
 }

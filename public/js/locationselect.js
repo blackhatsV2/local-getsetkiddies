@@ -20,6 +20,25 @@ document.addEventListener("DOMContentLoaded", () => {
     return `${formattedDate} – ${formattedTime}`;
   }
 
+  function createDetailedLabel(type, childName, dateTime, address, isLatest) {
+    const formattedDate = dateTime ? new Date(dateTime).toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true
+    }) : "N/A";
+
+    return `
+      <div class="label-wrapper">
+        <b>${type}</b>
+        <div class="label-child">${childName}</div>
+        <div class="label-time">${formattedDate}</div>
+        <div class="label-address">${address || "Location pending..."}</div>
+      </div>
+    `;
+  }
+
   async function getReadableAddress(lat, lng) {
     try {
       const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
@@ -233,10 +252,10 @@ document.addEventListener("DOMContentLoaded", () => {
               })
             }).addTo(map)
               .bindPopup(`<b>Browser Location Fallback (Saved)</b><br>${readable}`)
-              .bindTooltip(`latest location: ${activeChildName}`, {
+              .bindTooltip(createDetailedLabel("LATEST LOCATION", activeChildName, new Date(), readable, true), {
                 permanent: true,
                 direction: 'top',
-                className: 'child-location-header',
+                className: 'map-location-label latest',
                 interactive: true
               });
             
@@ -313,13 +332,21 @@ document.addEventListener("DOMContentLoaded", () => {
         `);
 
         if (isLast) {
-          pastMarker.bindTooltip(`latest location: ${activeChildName}`, {
+          pastMarker.bindTooltip(createDetailedLabel("LATEST LOCATION", activeChildName, date_time, readable_address, true), {
             permanent: true,
             direction: 'top',
-            className: 'child-location-header',
+            className: 'map-location-label latest',
             interactive: true
           }).on('tooltipclick', () => {
             pastMarker.openPopup();
+          });
+        } else {
+          // Past locations only show label on click
+          pastMarker.bindTooltip(createDetailedLabel("PAST LOCATION", activeChildName, date_time, readable_address, false), {
+            permanent: false,
+            direction: 'top',
+            className: 'map-location-label',
+            interactive: true
           });
         }
 
@@ -468,10 +495,10 @@ document.addEventListener("DOMContentLoaded", () => {
               }),
             }).addTo(map)
               .bindPopup(`<b>Browser Location Sync for ${activeChildName}</b><br>${readable}<br>${formattedNow}`)
-              .bindTooltip(`latest location: ${activeChildName}`, {
+              .bindTooltip(createDetailedLabel("LATEST LOCATION", activeChildName, new Date(), readable, true), {
                 permanent: true,
                 direction: 'top',
-                className: 'child-location-header',
+                className: 'map-location-label latest',
                 interactive: true
               });
             
@@ -518,10 +545,10 @@ document.addEventListener("DOMContentLoaded", () => {
           }),
         }).addTo(map)
           .bindPopup(`<b>GPS Update for ${activeChildName}</b><br>${readable_address}<br>${formattedNow}`)
-          .bindTooltip(`latest location: ${activeChildName}`, {
+          .bindTooltip(createDetailedLabel("LATEST LOCATION", activeChildName, date_time, readable_address, true), {
             permanent: true,
             direction: 'top',
-            className: 'child-location-header',
+            className: 'map-location-label latest',
             interactive: true
           });
         

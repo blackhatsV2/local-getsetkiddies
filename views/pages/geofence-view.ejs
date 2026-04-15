@@ -289,6 +289,19 @@ async function getReadableAddress(lat, lng) {
   }
 }
 
+function createDetailedLabel(type, name, dateInfo, location, isLatest) {
+  const formattedDate = dateInfo ? (typeof dateInfo === 'string' ? new Date(dateInfo).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : dateInfo) : "N/A";
+  
+  return `
+    <div class="label-wrapper">
+      <b>${type}</b>
+      <div class="label-child">${name}</div>
+      <div class="label-time">${formattedDate}</div>
+      <div class="label-address">${location || "Location pending..."}</div>
+    </div>
+  `;
+}
+
 async function renderGeofences() {
   const allCoords = [];
   const outsideList = [];
@@ -304,6 +317,14 @@ async function renderGeofences() {
       fillOpacity: 0.3
     }).addTo(map)
       .bindPopup(`<b>${g.geofence_name}</b><br>Child: ${g.firstname} ${g.lastname}`);
+
+    // Add geofence label (hidden by default, shown on click)
+    fenceCircle.bindTooltip(createDetailedLabel("GEOFENCE ZONE", g.geofence_name, "Radius: " + g.radius + "m", g.firstname + " " + g.lastname, false), {
+      permanent: false,
+      direction: 'top',
+      className: 'map-location-label',
+      interactive: true
+    });
 
     allCoords.push(fenceCenter);
 
@@ -329,17 +350,18 @@ async function renderGeofences() {
         fillOpacity: 0.9
       }).addTo(map);
 
-      // Add the interactive header
-      childMarker.bindTooltip(`latest location: ${g.firstname}`, {
+      // Fetch address first if needed to include in label
+      const address = await getReadableAddress(g.child_lat, g.child_lng);
+
+      // Add the detailed interactive header (permanent for latest)
+      childMarker.bindTooltip(createDetailedLabel("LATEST LOCATION", g.firstname + " " + g.lastname, g.date_time, address, true), {
         permanent: true,
         direction: 'top',
-        className: 'child-location-header',
+        className: 'map-location-label latest',
         interactive: true
       }).on('tooltipclick', () => {
         childMarker.openPopup();
       });
-
-      const address = await getReadableAddress(g.child_lat, g.child_lng);
 
       const row = document.querySelector(
         `tr[data-child-lat="${g.child_lat}"][data-child-lng="${g.child_lng}"]`
