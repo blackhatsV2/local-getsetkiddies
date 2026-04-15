@@ -92,15 +92,16 @@ document.addEventListener("DOMContentLoaded", () => {
         const readable = await getReadableAddress(lat, lng);
 
         marker = L.marker([lat, lng]).addTo(map)
+          .bindPopup(createDetailedLabel("LATEST LOCATION", activeChildName, "Last Known Location", readable, true), {
+            className: 'map-label-popup',
+            closeButton: false
+          })
           .bindTooltip(createDetailedLabel("LATEST LOCATION", activeChildName, "Last Known Location", readable, true), {
             permanent: true,
             direction: 'top',
             className: 'map-location-label latest',
             interactive: true
           });
-        
-        // Detailed info popup
-        marker.bindPopup(`<b>${activeChildName}</b><br>Last known center for geofence.`);
         
         marker.on('tooltipclick', () => {
           marker.openPopup();
@@ -140,15 +141,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (circle) map.removeLayer(circle);
 
     marker = L.marker([lat, lng]).addTo(map)
-      .bindTooltip(createDetailedLabel("GEOFENCE SETUP", activeChildName, "New Center Selection", `${lat.toFixed(5)}, ${lng.toFixed(5)}`, false), {
-        permanent: false,
-        direction: 'top',
-        className: 'map-location-label',
-        interactive: true
+      .bindPopup(createDetailedLabel("GEOFENCE SETUP", activeChildName, "New Center Selection", `${lat.toFixed(5)}, ${lng.toFixed(5)}`, false), {
+        className: 'map-label-popup',
+        closeButton: false
       });
 
-    marker.bindPopup(`<b>New Geofence Center</b><br>Lat: ${lat.toFixed(5)}<br>Lng: ${lng.toFixed(5)}`);
-    
     marker.on('tooltipclick', () => {
       marker.openPopup();
     });

@@ -342,6 +342,35 @@ body {
   word-break: break-word;
 }
 
+/* Custom Popup style to match Labels */
+.map-label-popup .leaflet-popup-content-wrapper {
+  padding: 0;
+  border-radius: 12px;
+  border: 2px solid #692e69;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.map-label-popup .leaflet-popup-content {
+  margin: 0;
+  padding: 0; /* content will have label-wrapper padding */
+}
+
+.map-label-popup .leaflet-popup-tip {
+  background: #692e69;
+}
+
+.map-label-popup .leaflet-popup-close-button {
+  display: none;
+}
+
+/* Re-use label styling inside popups */
+.map-label-popup .label-wrapper {
+  padding: 8px 12px;
+  min-width: 160px;
+  max-width: 300px;
+}
+
 .map-location-label b {
   color: #692e69;
   display: block;

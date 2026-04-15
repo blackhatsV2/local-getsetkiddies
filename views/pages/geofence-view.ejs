@@ -318,12 +318,10 @@ async function renderGeofences() {
     }).addTo(map)
       .bindPopup(`<b>${g.geofence_name}</b><br>Child: ${g.firstname} ${g.lastname}`);
 
-    // Add geofence label (hidden by default, shown on click)
-    fenceCircle.bindTooltip(createDetailedLabel("GEOFENCE ZONE", g.geofence_name, "Radius: " + g.radius + "m", g.firstname + " " + g.lastname, false), {
-      permanent: false,
-      direction: 'top',
-      className: 'map-location-label',
-      interactive: true
+    // Add geofence label (hidden by default, shown on click via Popup)
+    fenceCircle.bindPopup(createDetailedLabel("GEOFENCE ZONE", g.geofence_name, "Radius: " + g.radius + "m", g.firstname + " " + g.lastname, false), {
+      className: 'map-label-popup',
+      closeButton: false
     });
 
     allCoords.push(fenceCenter);
@@ -354,6 +352,11 @@ async function renderGeofences() {
       const address = await getReadableAddress(g.child_lat, g.child_lng);
 
       // Add the detailed interactive header (permanent for latest)
+      childMarker.bindPopup(createDetailedLabel("LATEST LOCATION", g.firstname + " " + g.lastname, g.date_time, address, true), {
+        className: 'map-label-popup',
+        closeButton: false
+      });
+
       childMarker.bindTooltip(createDetailedLabel("LATEST LOCATION", g.firstname + " " + g.lastname, g.date_time, address, true), {
         permanent: true,
         direction: 'top',
@@ -377,12 +380,7 @@ async function renderGeofences() {
         locCell.textContent = address;
       }
 
-      childMarker.bindPopup(`
-        <b>${g.firstname} ${g.lastname}</b><br>
-        ${inside ? 'Inside' : 'Outside'} geofence<br>
-        Distance: ${dist.toFixed(1)} m<br>
-        Location: ${address}
-      `);
+      // Already handled above by the detailed popup
 
       if (!inside) {
         L.polyline([childLoc, fenceCenter], { color: 'red', dashArray: '5, 10' }).addTo(map);
