@@ -31,6 +31,25 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  async function saveLocation(childId, lat, lng, source = "Browser") {
+    try {
+      const res = await fetch("/api/locations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          child_id: childId,
+          latitude: lat,
+          longitude: lng,
+          source: source
+        })
+      });
+      return await res.json();
+    } catch (err) {
+      console.error("Error saving location:", err);
+      return { error: err.message };
+    }
+  }
+
   const trackButtons = document.querySelectorAll(".trackBtn");
   const mapDiv = document.getElementById("map");
   const addressEl = document.getElementById("address");
@@ -191,6 +210,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const lat = position.coords.latitude;
             const lng = position.coords.longitude;
 
+            // Save to database
+            await saveLocation(activeChildId, lat, lng, "Browser Fallback");
+
             // Set map to current browser location
             map.setView([lat, lng], 15);
 
@@ -198,7 +220,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             addressEl.innerHTML = `<p>Showing <b>browser location</b> for <b>${activeChildName}</b> at <b><i>${readable}.</i></b></p>`;
             coordsEl.textContent = `Latitude: ${lat}, Longitude: ${lng}`;
-            lastSeenEl.innerHTML = `This is your current browser location (Arduino GPS data not available).`;
+            lastSeenEl.innerHTML = `This is your current browser location (saved to database).`;
 
             // Clear markers and add new marker for browser location
             if (window.currentMarker) map.removeLayer(window.currentMarker);
@@ -210,8 +232,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 popupAnchor: [0, -30]
               })
             }).addTo(map)
-              .bindPopup(`<b>Browser Location Fallback (Arduino Unavailable)</b><br>${readable}`)
+              .bindPopup(`<b>Browser Location Fallback (Saved)</b><br>${readable}`)
               .openPopup();
+
+            // Update table cell
+            const row = table.querySelector(`tr[data-child-id="${activeChildId}"]`);
+            if (row) {
+              const locationCell = row.querySelector(".last-location");
+              if (locationCell) locationCell.textContent = readable;
+            }
 
             // Refresh map view
             const mapContainerEl = document.getElementById("mapContainer");
@@ -391,7 +420,50 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await res.json();
 
       if (data.message === "no records yet") {
-        alert("No GPS data received yet from the module. Please ensure the Serial Bridge is running.");
+        // Fallback to browser geolocation if Arduino has no data
+        alert(`No GPS data received yet from the module. Using browser geolocation as fallback.`);
+        
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(async (position) => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+
+            // Save to database
+            await saveLocation(activeChildId, lat, lng, "Sync Fallback");
+
+            const readable = await getReadableAddress(lat, lng);
+            const formattedNow = new Date().toLocaleString("en-US");
+
+            // Update Map
+            if (window.currentMarker) map.removeLayer(window.currentMarker);
+            window.currentMarker = L.marker([lat, lng], {
+              icon: L.icon({
+                iconUrl: "https://maps.gstatic.com/mapfiles/ms2/micons/red-dot.png",
+                iconSize: [32, 32],
+                iconAnchor: [16, 32],
+                popupAnchor: [0, -30],
+              }),
+            }).addTo(map)
+              .bindPopup(`<b>Browser Location Sync for ${activeChildName}</b><br>${readable}<br>${formattedNow}`)
+              .openPopup();
+
+            map.setView([lat, lng], 15);
+
+            // Update Text
+            addressEl.innerHTML = `<b>Current Location (Browser Fallback):</b> ${readable}`;
+            coordsEl.textContent = `Lat: ${lat}, Lng: ${lng}`;
+            lastSeenEl.innerHTML = `Last Sync: <b>${formattedNow}</b>.`;
+
+            // Update Table
+            const row = table.querySelector(`tr[data-child-id="${activeChildId}"]`);
+            if (row) row.querySelector(".last-location").textContent = readable;
+          }, (err) => {
+            console.error("Geolocation error:", err);
+            alert("Could not retrieve GPS from module or browser. Please ensure the module is active or browser location is enabled.");
+          });
+        } else {
+          alert("No GPS data from module and geolocation not supported by browser.");
+        }
       } else {
         let { latitude, longitude, readable_address, date_time } = data;
         
