@@ -183,20 +183,57 @@ document.addEventListener("DOMContentLoaded", () => {
       const geofenceData = await geofenceRes.json();
 
       if (historyData.message === "no records yet") {
-        map.setView([0, 0], 2);
-        addressEl.innerHTML = `<b>No records yet for ${activeChildName}.</b>`;
-        coordsEl.textContent = "";
-        lastSeenEl.textContent = "";
-        scanBtn.style.display = "inline-block";
+        // Notify user about Arduino unavailability
+        alert(`Arduino modules for ${activeChildName} is not available. Using browser geolocation as fallback.`);
 
-        // ensure the map is brought into view and re-rendered even when there are no records
-        const mapContainerEl = document.getElementById("mapContainer");
-        if (mapContainerEl) {
-          mapContainerEl.scrollIntoView({ behavior: "smooth", block: "start" });
-          setTimeout(() => {
-            try { map.invalidateSize(); } catch (err) { /* ignore */ }
-          }, 450);
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(async (position) => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+
+            // Set map to current browser location
+            map.setView([lat, lng], 15);
+
+            const readable = await getReadableAddress(lat, lng);
+
+            addressEl.innerHTML = `<p>Showing <b>browser location</b> for <b>${activeChildName}</b> at <b><i>${readable}.</i></b></p>`;
+            coordsEl.textContent = `Latitude: ${lat}, Longitude: ${lng}`;
+            lastSeenEl.innerHTML = `This is your current browser location (Arduino GPS data not available).`;
+
+            // Clear markers and add new marker for browser location
+            if (window.currentMarker) map.removeLayer(window.currentMarker);
+            window.currentMarker = L.marker([lat, lng], {
+              icon: L.icon({
+                iconUrl: "https://maps.gstatic.com/mapfiles/ms2/micons/red-dot.png",
+                iconSize: [32, 32],
+                iconAnchor: [16, 32],
+                popupAnchor: [0, -30]
+              })
+            }).addTo(map)
+              .bindPopup(`<b>Browser Location Fallback (Arduino Unavailable)</b><br>${readable}`)
+              .openPopup();
+
+            // Refresh map view
+            const mapContainerEl = document.getElementById("mapContainer");
+            if (mapContainerEl) {
+              mapContainerEl.scrollIntoView({ behavior: "smooth", block: "start" });
+              setTimeout(() => {
+                try { map.invalidateSize(); } catch (err) { /* ignore */ }
+              }, 450);
+            }
+          }, (error) => {
+            console.error("Geolocation error:", error);
+            alert("Could not retrieve browser location. Please ensure location permissions are granted.");
+            map.setView([0, 0], 2);
+            addressEl.innerHTML = `<b>No records yet for ${activeChildName}.</b>`;
+          });
+        } else {
+          alert("Geolocation is not supported by your browser.");
+          map.setView([0, 0], 2);
+          addressEl.innerHTML = `<b>No records yet for ${activeChildName}.</b>`;
         }
+
+        scanBtn.style.display = "inline-block";
         return;
       }
 
