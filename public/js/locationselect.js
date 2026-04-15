@@ -258,7 +258,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 iconSize: [32, 32],
                 iconAnchor: [16, 32],
                 popupAnchor: [0, -30]
-              })
+              }),
+              zIndexOffset: 1000
             }).addTo(map)
               .bindPopup(createDetailedLabel("LATEST LOCATION", activeChildName, new Date(), readable, true), {
                 className: 'map-label-popup latest',
@@ -325,7 +326,8 @@ document.addEventListener("DOMContentLoaded", () => {
             iconSize: [32, 32],
             iconAnchor: [16, 32],
             popupAnchor: [0, -30]
-          })
+          }),
+          zIndexOffset: isLast ? 1001 : 1000
         }).addTo(map);
 
         if (isLast) {
@@ -487,6 +489,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 iconAnchor: [16, 32],
                 popupAnchor: [0, -30],
               }),
+              zIndexOffset: 1000
             }).addTo(map)
               .bindPopup(createDetailedLabel("LATEST LOCATION", activeChildName, new Date(), readable, true), {
                 className: 'map-label-popup latest',
@@ -532,6 +535,7 @@ document.addEventListener("DOMContentLoaded", () => {
             iconAnchor: [16, 32],
             popupAnchor: [0, -30],
           }),
+          zIndexOffset: 1000
         }).addTo(map)
           .bindPopup(createDetailedLabel("LATEST LOCATION", activeChildName, date_time, readable_address, true), {
             className: 'map-label-popup latest',

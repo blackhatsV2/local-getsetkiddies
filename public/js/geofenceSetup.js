@@ -98,7 +98,7 @@ document.addEventListener("DOMContentLoaded", () => {
         
         const readable = await getReadableAddress(lat, lng);
 
-        marker = L.marker([lat, lng]).addTo(map)
+        marker = L.marker([lat, lng], { zIndexOffset: 1000 }).addTo(map)
           .bindPopup(createDetailedLabel("LATEST LOCATION", activeChildName, "Last Known Location", readable, true), {
             className: 'map-label-popup latest',
             closeButton: true,
@@ -139,7 +139,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (marker) map.removeLayer(marker);
     if (circle) map.removeLayer(circle);
 
-    marker = L.marker([lat, lng]).addTo(map)
+    marker = L.marker([lat, lng], { zIndexOffset: 1000 }).addTo(map)
       .bindPopup(createDetailedLabel("GEOFENCE SETUP", activeChildName, "New Center Selection", `${lat.toFixed(5)}, ${lng.toFixed(5)}`, false), {
         className: 'map-label-popup',
         closeButton: true

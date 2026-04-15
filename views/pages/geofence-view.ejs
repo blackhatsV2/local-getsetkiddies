@@ -305,39 +305,38 @@ async function renderGeofences() {
   const allCoords = [];
   const outsideList = [];
 
+  // First pass: render all geofences
   for (const g of geofences) {
     const fenceCenter = [g.fence_lat, g.fence_lng];
-    const childLoc = g.child_lat && g.child_lng ? [g.child_lat, g.child_lng] : null;
-
     const fenceCircle = L.circle(fenceCenter, {
       radius: g.radius,
       color: 'blue',
       fillColor: '#3f8efc',
       fillOpacity: 0.3
-    }).addTo(map)
-      .bindPopup(`<b>${g.geofence_name}</b><br>Child: ${g.firstname} ${g.lastname}`);
+    }).addTo(map);
 
-    // Add geofence label (hidden by default, shown on click via Popup)
+    // Add geofence label (shown on click via Popup)
     fenceCircle.bindPopup(createDetailedLabel("GEOFENCE ZONE", g.geofence_name, "Radius: " + g.radius + "m", g.firstname + " " + g.lastname, false), {
       className: 'map-label-popup',
       closeButton: true
     });
 
     allCoords.push(fenceCenter);
+  }
+
+  // Second pass: render all child markers and lines
+  for (const g of geofences) {
+    const childLoc = g.child_lat && g.child_lng ? [g.child_lat, g.child_lng] : null;
+    const fenceCenter = [g.fence_lat, g.fence_lng];
 
     if (childLoc) {
       allCoords.push(childLoc);
-
       const dist = distance(g.child_lat, g.child_lng, g.fence_lat, g.fence_lng);
       const inside = dist <= g.radius;
       const markerColor = inside ? 'green' : 'red';
 
-      
       if (!inside) {
-        outsideList.push({
-          name: `${g.firstname} ${g.lastname}`,
-          dist: dist
-        });
+        outsideList.push({ name: `${g.firstname} ${g.lastname}`, dist: dist });
       }
 
       const childMarker = L.circleMarker(childLoc, {
@@ -348,15 +347,11 @@ async function renderGeofences() {
       }).addTo(map);
 
       let address = g.readable_address;
-
-      // Only call the geocoding proxy if we don't have a valid address stored
       if (!address || address === "Fetching..." || address === "Unknown location") {
-        // Small delay between Nominatim requests to avoid rate limiting
         await new Promise(r => setTimeout(r, 1100));
         address = await getReadableAddress(g.child_lat, g.child_lng);
       }
 
-      // Add the detailed interactive header (open by default, closeable)
       childMarker.bindPopup(createDetailedLabel("LATEST LOCATION", g.firstname + " " + g.lastname, g.date_time, address, true), {
         className: 'map-label-popup latest',
         closeButton: true,
@@ -364,21 +359,13 @@ async function renderGeofences() {
         closeOnClick: false
       }).openPopup();
 
-      const row = document.querySelector(
-        `tr[data-child-lat="${g.child_lat}"][data-child-lng="${g.child_lng}"]`
-      );
+      const row = document.querySelector(`tr[data-child-lat="${g.child_lat}"][data-child-lng="${g.child_lng}"]`);
       if (row) {
-        const statusCell = row.querySelector(".status-cell");
-        const locCell = row.querySelector(".location-cell");
-
-        statusCell.innerHTML = inside 
+        row.querySelector(".status-cell").innerHTML = inside 
           ? `<span style="color:green;">Inside</span>` 
           : `<span style="color:red;">Outside (${dist.toFixed(1)} m)</span>`;
-
-        locCell.textContent = address;
+        row.querySelector(".location-cell").textContent = address;
       }
-
-      // Already handled above by the detailed popup
 
       if (!inside) {
         L.polyline([childLoc, fenceCenter], { color: 'red', dashArray: '5, 10' }).addTo(map);
