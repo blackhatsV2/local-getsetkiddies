@@ -233,7 +233,19 @@ document.addEventListener("DOMContentLoaded", () => {
               })
             }).addTo(map)
               .bindPopup(`<b>Browser Location Fallback (Saved)</b><br>${readable}`)
-              .openPopup();
+              .bindTooltip(`latest location: ${activeChildName}`, {
+                permanent: true,
+                direction: 'top',
+                className: 'child-location-header',
+                interactive: true
+              });
+            
+            // Open detailed info on tooltip click
+            window.currentMarker.on('tooltipclick', () => {
+              window.currentMarker.openPopup();
+            });
+
+            window.currentMarker.openPopup();
 
             // Update table cell
             const row = table.querySelector(`tr[data-child-id="${activeChildId}"]`);
@@ -299,6 +311,17 @@ document.addEventListener("DOMContentLoaded", () => {
           ${readable_address}<br>
           ${formatFullDateTime(date_time)}
         `);
+
+        if (isLast) {
+          pastMarker.bindTooltip(`latest location: ${activeChildName}`, {
+            permanent: true,
+            direction: 'top',
+            className: 'child-location-header',
+            interactive: true
+          }).on('tooltipclick', () => {
+            pastMarker.openPopup();
+          });
+        }
 
         window.historyMarkers.push(pastMarker);
       }
@@ -445,7 +468,18 @@ document.addEventListener("DOMContentLoaded", () => {
               }),
             }).addTo(map)
               .bindPopup(`<b>Browser Location Sync for ${activeChildName}</b><br>${readable}<br>${formattedNow}`)
-              .openPopup();
+              .bindTooltip(`latest location: ${activeChildName}`, {
+                permanent: true,
+                direction: 'top',
+                className: 'child-location-header',
+                interactive: true
+              });
+            
+            window.currentMarker.on('tooltipclick', () => {
+              window.currentMarker.openPopup();
+            });
+
+            window.currentMarker.openPopup();
 
             map.setView([lat, lng], 15);
 
@@ -484,7 +518,18 @@ document.addEventListener("DOMContentLoaded", () => {
           }),
         }).addTo(map)
           .bindPopup(`<b>GPS Update for ${activeChildName}</b><br>${readable_address}<br>${formattedNow}`)
-          .openPopup();
+          .bindTooltip(`latest location: ${activeChildName}`, {
+            permanent: true,
+            direction: 'top',
+            className: 'child-location-header',
+            interactive: true
+          });
+        
+        window.currentMarker.on('tooltipclick', () => {
+          window.currentMarker.openPopup();
+        });
+
+        window.currentMarker.openPopup();
 
         map.setView([latitude, longitude], 15);
 

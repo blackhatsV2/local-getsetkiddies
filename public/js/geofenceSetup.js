@@ -75,7 +75,20 @@ document.addEventListener("DOMContentLoaded", () => {
       
       if (!isNaN(lat) && !isNaN(lng)) {
         map.setView([lat, lng], 15);
-        marker = L.marker([lat, lng]).addTo(map);
+        marker = L.marker([lat, lng]).addTo(map)
+          .bindTooltip(`latest location: ${activeChildName}`, {
+            permanent: true,
+            direction: 'top',
+            className: 'child-location-header',
+            interactive: true
+          });
+        
+        // Detailed info popup
+        marker.bindPopup(`<b>${activeChildName}</b><br>Last known center for geofence.`);
+        
+        marker.on('tooltipclick', () => {
+          marker.openPopup();
+        });
         infoEl.innerHTML = `
           <h1><b>Setting Geofence for: ${activeChildName}</b></h1><br>
           Last known location: ${lat.toFixed(5)}, ${lng.toFixed(5)}.
@@ -110,7 +123,19 @@ document.addEventListener("DOMContentLoaded", () => {
     if (marker) map.removeLayer(marker);
     if (circle) map.removeLayer(circle);
 
-    marker = L.marker([lat, lng]).addTo(map);
+    marker = L.marker([lat, lng]).addTo(map)
+      .bindTooltip(`latest location: ${activeChildName}`, {
+        permanent: true,
+        direction: 'top',
+        className: 'child-location-header',
+        interactive: true
+      });
+
+    marker.bindPopup(`<b>New Geofence Center</b><br>Lat: ${lat.toFixed(5)}<br>Lng: ${lng.toFixed(5)}`);
+    
+    marker.on('tooltipclick', () => {
+      marker.openPopup();
+    });
     circle = L.circle([lat, lng], {
       radius,
       color: "blue",

@@ -310,3 +310,28 @@ body {
   from { transform: scale(0.8); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
 }
+
+/* Leaflet Custom Tooltip (Headers) */
+.child-location-header {
+  background-color: #692e69;
+  color: white;
+  border: 2px solid white;
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-weight: 600;
+  font-size: 13px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.child-location-header:hover {
+  background-color: #8b3c8b;
+  transform: scale(1.05);
+}
+
+/* Adjust the arrow color */
+.leaflet-tooltip-top.child-location-header::before {
+  border-top-color: #692e69;
+}

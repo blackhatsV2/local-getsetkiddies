@@ -329,6 +329,16 @@ async function renderGeofences() {
         fillOpacity: 0.9
       }).addTo(map);
 
+      // Add the interactive header
+      childMarker.bindTooltip(`latest location: ${g.firstname}`, {
+        permanent: true,
+        direction: 'top',
+        className: 'child-location-header',
+        interactive: true
+      }).on('tooltipclick', () => {
+        childMarker.openPopup();
+      });
+
       const address = await getReadableAddress(g.child_lat, g.child_lng);
 
       const row = document.querySelector(
