@@ -203,7 +203,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (historyData.message === "no records yet") {
         // Notify user about Arduino unavailability
-        alert(`Arduino modules for ${activeChildName} is not available. Using browser geolocation as fallback.`);
+        showAlert(`Arduino modules for ${activeChildName} is not available. Using browser geolocation as fallback.`);
 
         if (navigator.geolocation) {
           navigator.geolocation.getCurrentPosition(async (position) => {
@@ -252,12 +252,12 @@ document.addEventListener("DOMContentLoaded", () => {
             }
           }, (error) => {
             console.error("Geolocation error:", error);
-            alert("Could not retrieve browser location. Please ensure location permissions are granted.");
+            showAlert("Could not retrieve browser location. Please ensure location permissions are granted.");
             map.setView([0, 0], 2);
             addressEl.innerHTML = `<b>No records yet for ${activeChildName}.</b>`;
           });
         } else {
-          alert("Geolocation is not supported by your browser.");
+          showAlert("Geolocation is not supported by your browser.");
           map.setView([0, 0], 2);
           addressEl.innerHTML = `<b>No records yet for ${activeChildName}.</b>`;
         }
@@ -408,7 +408,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   scanBtn.addEventListener("click", async () => {
-    if (!activeChildId) return alert("Please select a child first.");
+    if (!activeChildId) return showAlert("Please select a child first.");
 
     const originalText = scanBtn.innerHTML;
     scanBtn.innerHTML = `<span class="loading-spinner"></span> Syncing with GPS...`;
@@ -421,7 +421,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (data.message === "no records yet") {
         // Fallback to browser geolocation if Arduino has no data
-        alert(`No GPS data received yet from the module. Using browser geolocation as fallback.`);
+        showAlert(`No GPS data received yet from the module. Using browser geolocation as fallback.`);
         
         if (navigator.geolocation) {
           navigator.geolocation.getCurrentPosition(async (position) => {
@@ -459,10 +459,10 @@ document.addEventListener("DOMContentLoaded", () => {
             if (row) row.querySelector(".last-location").textContent = readable;
           }, (err) => {
             console.error("Geolocation error:", err);
-            alert("Could not retrieve GPS from module or browser. Please ensure the module is active or browser location is enabled.");
+            showAlert("Could not retrieve GPS from module or browser. Please ensure the module is active or browser location is enabled.");
           });
         } else {
-          alert("No GPS data from module and geolocation not supported by browser.");
+          showAlert("No GPS data from module and geolocation not supported by browser.");
         }
       } else {
         let { latitude, longitude, readable_address, date_time } = data;
@@ -499,7 +499,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     } catch (err) {
       console.error(err);
-      alert("Error syncing with GPS data.");
+      showAlert("Error syncing with GPS data.");
     } finally {
       scanBtn.innerHTML = originalText;
       scanBtn.disabled = false;

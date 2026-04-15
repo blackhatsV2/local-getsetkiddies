@@ -57,14 +57,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // If no last-known location, inform parent then offer to go to Track Child
       if (isNaN(lat) || isNaN(lng)) {
-        alert("No location record for this child.");
-        const go = confirm(
-          "This child has no recorded location. Proceed to Track Child page to 'Show on Map' and 'Scan for Current Location'?\n\nPress Proceed to go, or Cancel to stay."
-        );
-        if (go) {
-          
-          window.location.href = `/track-child?child_id=${encodeURIComponent(activeChildId)}`;
-        }
+        showAlert("No location record for this child.");
+        setTimeout(async () => {
+          const go = await showConfirm(
+            "This child has no recorded location. Proceed to Track Child page to 'Show on Map' and 'Scan for Current Location'?"
+          );
+          if (go) {
+            window.location.href = `/track-child?child_id=${encodeURIComponent(activeChildId)}`;
+          }
+        }, 500);
         return;
       }
 
@@ -99,7 +100,7 @@ document.addEventListener("DOMContentLoaded", () => {
   
   map.on("click", (e) => {
     if (!activeChildId) {
-      alert("Please select a child first.");
+      showAlert("Please select a child first.");
       return;
     }
 
@@ -128,7 +129,7 @@ document.addEventListener("DOMContentLoaded", () => {
  
   saveBtn.addEventListener("click", async () => {
     if (!activeChildId || !marker) {
-      alert("Please set a geofence first.");
+      showAlert("Please set a geofence first.");
       return;
     }
 
@@ -152,7 +153,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const result = await res.json();
       if (res.ok) {
         
-        const proceed = confirm(`Geofence '${name}' saved for ${activeChildName}.\n\nGo to Geofence Overview now? Click cancel to stay on this page.`);
+        const proceed = await showConfirm(`Geofence '${name}' saved for ${activeChildName}.\n\nGo to Geofence Overview now?`);
         if (proceed) {
           window.location.href = "/geofence-view";
         } else {
@@ -161,11 +162,11 @@ document.addEventListener("DOMContentLoaded", () => {
           window.location.href = window.location.pathname + window.location.search;
         }
       } else {
-        alert(result.error || "Failed to save geofence");
+        showAlert(result.error || "Failed to save geofence");
       }
     } catch (err) {
       console.error(err);
-      alert("Error saving geofence");
+      showAlert("Error saving geofence");
     }
   });
 });

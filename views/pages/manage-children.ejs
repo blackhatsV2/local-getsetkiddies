@@ -116,7 +116,7 @@ async function loadChildren() {
 
 
 async function deleteChild(id) {
-  if (!confirm("Delete this child and all their data?")) return;
+  if (!await showConfirm("Delete this child and all their data?")) return;
 
   const res = await fetch("/api/children/delete", {
     method: "POST",
@@ -125,7 +125,7 @@ async function deleteChild(id) {
   });
 
   const data = await res.json();
-  alert(data.message);
+  showAlert(data.message);
   loadChildren();
 }
 

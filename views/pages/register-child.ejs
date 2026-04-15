@@ -31,17 +31,17 @@
             .then((res) => res.json())
             .then((result) => {
               if (result.message) {
-                // optional quick feedback then redirect to track child page
-                // you can remove the alert if you prefer silent redirect
-                alert("Child registered successfully!");
-                window.location.href = "/track-child";
+                showAlert("Child registered successfully!");
+                setTimeout(() => {
+                  window.location.href = "/track-child";
+                }, 1500);
               } else {
-                alert("Failed to register child.");
+                showAlert("Failed to register child.");
               }
             })
             .catch((err) => {
               console.error("Error:", err);
-              alert("Error registering child.");
+              showAlert("Error registering child.");
             });
         });
       });

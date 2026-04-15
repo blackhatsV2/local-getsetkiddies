@@ -429,7 +429,7 @@ document.querySelectorAll(".deleteChildBtn").forEach((btn) => {
   btn.addEventListener("click", async () => {
     const childId = btn.dataset.childId;
     const childName = btn.dataset.childName || "this child";
-    const ok = confirm(`Delete ${childName} and ALL their records (locations, geofences)? This cannot be undone.`);
+    const ok = await showConfirm(`Delete ${childName} and ALL their records (locations, geofences)? This cannot be undone.`);
     if (!ok) return;
 
     try {
@@ -440,15 +440,17 @@ document.querySelectorAll(".deleteChildBtn").forEach((btn) => {
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({ message: 'Delete failed' }));
-        alert(err.message || "Failed to delete child");
+        showAlert(err.message || "Failed to delete child");
         return;
       }
       // success: reload to refresh table/map
-      alert(`${childName} deleted`);
-      window.location.reload();
+      showAlert(`${childName} deleted`);
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
     } catch (err) {
       console.error("Delete error:", err);
-      alert("Network error deleting child");
+      showAlert("Network error deleting child");
     }
   });
 });
@@ -457,7 +459,7 @@ document.querySelectorAll(".updateLocBtn").forEach(btn => {
   btn.addEventListener("click", () => {
     const childId = btn.dataset.childId;
     if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser.");
+      showAlert("Geolocation is not supported by your browser.");
       return;
     }
 
@@ -482,17 +484,19 @@ document.querySelectorAll(".updateLocBtn").forEach(btn => {
         
         if (!res.ok) throw new Error("Failed to update location");
         
-        alert("Location updated successfully from your device!");
-        window.location.reload();
+        showAlert("Location updated successfully from your device!");
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
       } catch (err) {
         console.error("Error updating location:", err);
-        alert("Error updating location.");
+        showAlert("Error updating location.");
         btn.textContent = "Get Device Location";
         btn.disabled = false;
       }
     }, (error) => {
       console.error("Error getting geolocation:", error);
-      alert("Could not get your location. Please ensure location permissions are granted in your browser.");
+      showAlert("Could not get your location. Please ensure location permissions are granted in your browser.");
       btn.textContent = "Get Device Location";
       btn.disabled = false;
     });
