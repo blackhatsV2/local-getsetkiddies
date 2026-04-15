@@ -109,11 +109,14 @@ document.addEventListener("DOMContentLoaded", () => {
           locationCell.textContent = "No records yet";
         } else {
           let readable = data.readable_address || "Unknown";
-          if (readable === "Fetching..." || readable === "Unknown location" || readable === "Unknown") {
+          
+          // Only call the geocoding proxy if we don't have a valid address stored
+          if (!readable || readable === "Fetching..." || readable === "Unknown location" || readable === "Unknown") {
             readable = await getReadableAddress(data.latitude, data.longitude);
             // Delay after Nominatim call to respect rate limits
             await new Promise(r => setTimeout(r, 1100));
           }
+          
           const formatted = data.date_time ? new Date(data.date_time).toLocaleString("en-US") : "";
           locationCell.innerHTML = `${readable}<br><small>${formatted}</small>`;
         }

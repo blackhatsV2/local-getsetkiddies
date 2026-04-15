@@ -347,10 +347,14 @@ async function renderGeofences() {
         fillOpacity: 0.9
       }).addTo(map);
 
-      // Small delay between Nominatim requests to avoid rate limiting
-      await new Promise(r => setTimeout(r, 1100));
-      // Fetch address first if needed to include in label
-      const address = await getReadableAddress(g.child_lat, g.child_lng);
+      let address = g.readable_address;
+
+      // Only call the geocoding proxy if we don't have a valid address stored
+      if (!address || address === "Fetching..." || address === "Unknown location") {
+        // Small delay between Nominatim requests to avoid rate limiting
+        await new Promise(r => setTimeout(r, 1100));
+        address = await getReadableAddress(g.child_lat, g.child_lng);
+      }
 
       // Add the detailed interactive header (permanent for latest)
       childMarker.bindPopup(createDetailedLabel("LATEST LOCATION", g.firstname + " " + g.lastname, g.date_time, address, true), {

@@ -106,7 +106,7 @@ app.get("/geofence-view", (req, res) => {
     SELECT 
       g.id AS geofence_id, g.name AS geofence_name, g.latitude AS fence_lat, g.longitude AS fence_lng, g.radius,
       c.id AS child_id, c.firstname, c.lastname,
-      l.latitude AS child_lat, l.longitude AS child_lng, l.date_time
+      l.latitude AS child_lat, l.longitude AS child_lng, l.date_time, l.readable_address
     FROM geofences AS g
     JOIN registered_children AS c ON g.child_id = c.id
     LEFT JOIN (

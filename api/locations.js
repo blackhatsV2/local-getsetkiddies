@@ -7,6 +7,9 @@ import { calculateDistance } from "../utils/geo.js";
 
 const router = express.Router();
 
+// Simple in-memory cache for reverse geocoding
+const geoCache = new Map();
+
 /* -----------------------------
    API: Proxy Reverse Geocode
 ----------------------------- */
@@ -15,6 +18,14 @@ router.get("/reverse-geocode", isAuthenticated, async (req, res) => {
 
   if (!lat || !lng) {
     return res.status(400).json({ error: "Missing latitude or longitude" });
+  }
+
+  // Create a cache key by rounding coordinates to 5 decimal places (~1.1 meter precision)
+  const cacheKey = `${parseFloat(lat).toFixed(5)},${parseFloat(lng).toFixed(5)}`;
+  
+  if (geoCache.has(cacheKey)) {
+    console.log(`[GEO CACHE HIT] ${cacheKey}`);
+    return res.json({ address: geoCache.get(cacheKey) });
   }
 
   try {
@@ -29,7 +40,14 @@ router.get("/reverse-geocode", isAuthenticated, async (req, res) => {
     }
 
     const data = await response.json();
-    res.json({ address: data.display_name || null });
+    const address = data.display_name || null;
+    
+    // Cache the successful result
+    if (address) {
+      geoCache.set(cacheKey, address);
+    }
+
+    res.json({ address });
   } catch (err) {
     console.error("Nominatim proxy error:", err);
     res.status(500).json({ error: "Geocoding failed" });

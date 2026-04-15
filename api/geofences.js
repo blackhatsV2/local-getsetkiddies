@@ -16,12 +16,12 @@ router.get("/setup", (req, res) => {
 
   const sql = `
     SELECT c.id, c.firstname, c.lastname, c.child_age, c.child_gender,
-           l.latitude, l.longitude, l.date_time,
+           l.latitude, l.longitude, l.date_time, l.readable_address,
            g.id AS geofence_id, g.name AS geofence_name,
            g.created_at AS geofence_created_at, g.updated_at AS geofence_updated_at
     FROM registered_children AS c
     LEFT JOIN (
-      SELECT child_id, latitude, longitude, date_time
+      SELECT child_id, latitude, longitude, date_time, readable_address
       FROM locations
       WHERE (child_id, date_time) IN (
         SELECT child_id, MAX(date_time)

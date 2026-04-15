@@ -49,6 +49,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const lat = parseFloat(row.dataset.lat);
     const lng = parseFloat(row.dataset.lng);
     const cell = row.querySelector(".location-cell");
+    const storedAddress = row.dataset.readableAddress;
+
+    // Skip if we already have a valid address from the server
+    if (storedAddress && storedAddress !== 'Fetching...' && storedAddress !== 'Unknown location' && storedAddress.trim() !== '') {
+      continue;
+    }
 
     if (!isNaN(lat) && !isNaN(lng)) {
       const address = await getReadableAddress(lat, lng);

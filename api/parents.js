@@ -109,10 +109,25 @@ router.get("/", (req, res) => {
   const parent = req.session.parent;
   if (!parent) return res.redirect("/login");
 
-  const sql = `SELECT id, firstname, lastname, child_age, child_gender, date_registered
-               FROM registered_children
-               WHERE parent_id = ?
-               ORDER BY date_registered DESC`; // latest first
+  const sql = `
+    SELECT 
+      c.id, c.firstname, c.lastname, c.child_age, c.child_gender, c.date_registered,
+      l.latitude, l.longitude, l.readable_address, l.date_time,
+      g.id AS geofence_id
+    FROM registered_children AS c
+    LEFT JOIN (
+      SELECT l1.*
+      FROM locations l1
+      JOIN (
+        SELECT child_id, MAX(date_time) AS latest
+        FROM locations
+        GROUP BY child_id
+      ) l2 ON l1.child_id = l2.child_id AND l1.date_time = l2.latest
+    ) AS l ON c.id = l.child_id
+    LEFT JOIN geofences AS g ON c.id = g.child_id
+    WHERE c.parent_id = ?
+    ORDER BY c.date_registered DESC
+  `;
 
   db.query(sql, [parent.id], (err, results) => {
     if (err) {

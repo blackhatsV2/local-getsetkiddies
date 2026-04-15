@@ -149,12 +149,26 @@
             </thead>
             <tbody>
               <% children.forEach(child => { %>
-                <tr data-child-id="<%= child.id %>">
+                <tr 
+                  data-child-id="<%= child.id %>"
+                  data-lat="<%= child.latitude || '' %>"
+                  data-lng="<%= child.longitude || '' %>"
+                  data-readable-address="<%= child.readable_address || '' %>"
+                >
                   <td><%= child.firstname %></td>
                   <td><%= child.lastname %></td>
                   <td><%= child.child_age %></td>
                   <td><%= child.child_gender %></td>
-                  <td class="last-location">Loading...</td>
+                  <td class="last-location">
+                    <% if (child.readable_address && child.readable_address !== 'Fetching...' && child.readable_address !== 'Unknown location') { %>
+                      <%= child.readable_address %><br>
+                      <small><%= child.date_time ? new Date(child.date_time).toLocaleString("en-US") : "" %></small>
+                    <% } else if (child.latitude && child.longitude) { %>
+                      Loading...
+                    <% } else { %>
+                      No data
+                    <% } %>
+                  </td>
                   <td class="geoStatus" data-child-id="<%= child.id %>">Checking...</td>
                   <td>
                     <div style="display:flex; gap:8px; align-items:center;">

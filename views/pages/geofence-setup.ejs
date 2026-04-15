@@ -134,13 +134,16 @@
               data-child-id="<%= child.id %>"
               data-lat="<%= child.latitude || '' %>"
               data-lng="<%= child.longitude || '' %>"
+              data-readable-address="<%= child.readable_address || '' %>"
             >
               <td><%= child.firstname %></td>
               <td><%= child.lastname %></td>
               <td><%= child.child_age %></td>
               <td><%= child.child_gender %></td>
               <td class="location-cell">
-                <% if (child.latitude && child.longitude) { %>
+                <% if (child.readable_address && child.readable_address !== 'Fetching...' && child.readable_address !== 'Unknown location') { %>
+                  <%= child.readable_address %>
+                <% } else if (child.latitude && child.longitude) { %>
                   <em>Loading address...</em>
                 <% } else { %>
                   <em>No data</em>
