@@ -61,7 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
   loadAddresses();
 
   document.querySelectorAll(".setGeoBtn").forEach((btn) => {
-    btn.addEventListener("click", () => {
+    btn.addEventListener("click", async () => {
       activeChildId = btn.dataset.childId;
       activeChildName = btn.dataset.childName;
 
@@ -207,14 +207,13 @@ document.addEventListener("DOMContentLoaded", () => {
       showAlert("Error saving geofence");
     }
   });
+
+  // Auto-select child from URL param (must be inside DOMContentLoaded)
+  const urlParams = new URLSearchParams(window.location.search);
+  const selectedChildId = urlParams.get("child_id");
+
+  if (selectedChildId) {
+    const btn = document.querySelector(`.setGeoBtn[data-child-id="${selectedChildId}"]`);
+    if (btn) btn.click();
+  }
 });
-
-
-const urlParams = new URLSearchParams(window.location.search);
-const selectedChildId = urlParams.get("child_id");
-
-if (selectedChildId) {
-  const btn = document.querySelector(`.setGeoBtn[data-child-id="${selectedChildId}"]`);
-  if (btn) btn.click();
-}
-
