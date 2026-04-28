@@ -2,11 +2,10 @@ import { SerialPort } from 'serialport';
 import { ReadlineParser } from '@serialport/parser-readline';
 import fetch from 'node-fetch';
 
-// CONFIGURATION
-const PORT_PATH = '/dev/ttyUSB0'; // arduino pport
+const PORT_PATH = '/dev/ttyUSB0';
 const BAUD_RATE = 115200;    
 
-// UPDATE THIS TO YOUR NORTHFLANK APP URL (found in the Northflank dashboard after deployment)
+//  NORTHFLANK deploy LINK!!!!!!!!!!!!!!!!!!!!!!
 const SERVER_URL = process.env.SERVER_URL || 'https://www--official-getsetkiddies--wgsml27zypcz.code.run'; 
 const API_URL = `${SERVER_URL}/api/locations`; 
 
