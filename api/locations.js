@@ -7,7 +7,7 @@ import { calculateDistance } from "../utils/geo.js";
 
 const router = express.Router();
 
-// Simple in-memory cache for reverse geocoding
+//cache for reverse geocoding
 const geoCache = new Map();
 
 /* -----------------------------
@@ -20,7 +20,7 @@ router.get("/reverse-geocode", isAuthenticated, async (req, res) => {
     return res.status(400).json({ error: "Missing latitude or longitude" });
   }
 
-  // Create a cache key by rounding coordinates to 5 decimal places (~1.1 meter precision)
+  // Create a cache key 
   const cacheKey = `${parseFloat(lat).toFixed(5)},${parseFloat(lng).toFixed(5)}`;
   
   if (geoCache.has(cacheKey)) {
