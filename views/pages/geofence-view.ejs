@@ -104,6 +104,21 @@
     transition: background-color 0.2s;
   }
   .deleteChildBtn:hover { background-color: #c9302c; }
+
+  .child-marker-tooltip {
+    background-color: #692e69 !important;
+    color: white !important;
+    border: 1px solid #692e69 !important;
+    font-weight: bold;
+    font-size: 12px;
+    font-family: 'Roboto', sans-serif;
+    border-radius: 6px;
+    padding: 4px 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  }
+  .child-marker-tooltip::before {
+    border-top-color: #692e69 !important;
+  }
 </style>
 
   <%- include('../partials/top-nav-parents') %>
@@ -333,7 +348,7 @@ async function renderGeofences() {
       allCoords.push(childLoc);
       const dist = distance(g.child_lat, g.child_lng, g.fence_lat, g.fence_lng);
       const inside = dist <= g.radius;
-      const markerColor = inside ? 'green' : 'red';
+      const markerColor = inside ? '#1b5e20' : '#b71c1c';
 
       if (!inside) {
         outsideList.push({ name: `${g.firstname} ${g.lastname}`, dist: dist });
@@ -346,29 +361,35 @@ async function renderGeofences() {
         fillOpacity: 0.9
       }).addTo(map);
 
+      // Bind a permanent tooltip showing only the child's name with status color coding
+      childMarker.bindTooltip(g.firstname + " " + g.lastname, {
+        permanent: true,
+        direction: 'top',
+        className: inside ? 'child-marker-tooltip inside' : 'child-marker-tooltip outside'
+      });
+
       let address = g.readable_address;
       if (!address || address === "Fetching..." || address === "Unknown location") {
         await new Promise(r => setTimeout(r, 1100));
         address = await getReadableAddress(g.child_lat, g.child_lng);
       }
 
+      // Bind the detailed popup to show on click with status color coding
       childMarker.bindPopup(createDetailedLabel("LATEST LOCATION", g.firstname + " " + g.lastname, g.date_time, address, true), {
-        className: 'map-label-popup latest',
-        closeButton: true,
-        autoClose: false,
-        closeOnClick: false
-      }).openPopup();
+        className: inside ? 'map-label-popup latest inside' : 'map-label-popup latest outside',
+        closeButton: true
+      });
 
       const row = document.querySelector(`tr[data-child-lat="${g.child_lat}"][data-child-lng="${g.child_lng}"]`);
       if (row) {
         row.querySelector(".status-cell").innerHTML = inside 
-          ? `<span style="color:green;">Inside</span>` 
-          : `<span style="color:red;">Outside (${dist.toFixed(1)} m)</span>`;
+          ? `<span style="color:#1b5e20; font-weight: bold;">Inside</span>` 
+          : `<span style="color:#b71c1c; font-weight: bold;">Outside (${dist.toFixed(1)} m)</span>`;
         row.querySelector(".location-cell").textContent = address;
       }
 
       if (!inside) {
-        L.polyline([childLoc, fenceCenter], { color: 'red', dashArray: '5, 10' }).addTo(map);
+        L.polyline([childLoc, fenceCenter], { color: '#b71c1c', dashArray: '5, 10' }).addTo(map);
       }
     }
   }

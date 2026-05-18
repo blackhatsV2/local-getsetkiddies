@@ -250,25 +250,42 @@ document.addEventListener("DOMContentLoaded", () => {
             coordsEl.textContent = `Latitude: ${lat}, Longitude: ${lng}`;
             lastSeenEl.innerHTML = `This is your current browser location (saved to database).`;
 
+            // Calculate inside fallback geofence
+            let insideGeo = true;
+            if (Array.isArray(geofenceData) && geofenceData.length > 0) {
+              const g = geofenceData[0];
+              const dist = calculateDistance(lat, lng, g.latitude, g.longitude);
+              insideGeo = dist <= g.radius;
+            }
+
+            const fallbackIcon = insideGeo
+              ? "https://maps.gstatic.com/mapfiles/ms2/micons/green-dot.png"
+              : "https://maps.gstatic.com/mapfiles/ms2/micons/red-dot.png";
+
             // Clear markers and add new marker for browser location
             if (window.currentMarker) map.removeLayer(window.currentMarker);
             window.currentMarker = L.marker([lat, lng], {
               icon: L.icon({
-                iconUrl: "https://maps.gstatic.com/mapfiles/ms2/micons/red-dot.png",
+                iconUrl: fallbackIcon,
                 iconSize: [32, 32],
                 iconAnchor: [16, 32],
                 popupAnchor: [0, -30]
               }),
               zIndexOffset: 1000
-            }).addTo(map)
-              .bindPopup(createDetailedLabel("LATEST LOCATION", activeChildName, new Date(), readable, true), {
-                className: 'map-label-popup latest',
-                closeButton: true,
-                autoClose: false,
-                closeOnClick: false
-              });
+            }).addTo(map);
 
-            window.currentMarker.openPopup();
+            // Bind a permanent tooltip showing only the child's name with status color coding
+            window.currentMarker.bindTooltip(activeChildName, {
+              permanent: true,
+              direction: 'top',
+              className: insideGeo ? 'child-marker-tooltip inside' : 'child-marker-tooltip outside'
+            });
+
+            // Bind the detailed popup to show on click with status color coding
+            window.currentMarker.bindPopup(createDetailedLabel("LATEST LOCATION", activeChildName, new Date(), readable, true), {
+              className: insideGeo ? 'map-label-popup latest inside' : 'map-label-popup latest outside',
+              closeButton: true
+            });
 
             // Update table cell
             const row = table.querySelector(`tr[data-child-id="${activeChildId}"]`);
@@ -305,6 +322,19 @@ document.addEventListener("DOMContentLoaded", () => {
       const coordsArray = [];
       const totalPoints = historyData.length;
 
+      let insideGeofence = true;
+      if (Array.isArray(geofenceData) && geofenceData.length > 0 && historyData.length > 0) {
+        const g = geofenceData[0];
+        const lastLoc = historyData[historyData.length - 1];
+        const dist = calculateDistance(
+          lastLoc.latitude,
+          lastLoc.longitude,
+          g.latitude,
+          g.longitude
+        );
+        insideGeofence = dist <= g.radius;
+      }
+
       for (let index = 0; index < totalPoints; index++) {
         const loc = historyData[index];
         let { latitude, longitude, readable_address, date_time } = loc;
@@ -317,7 +347,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const isLast = index === totalPoints - 1;
         const markerIconUrl = isLast
-          ? "https://maps.gstatic.com/mapfiles/ms2/micons/red-dot.png"
+          ? (insideGeofence ? "https://maps.gstatic.com/mapfiles/ms2/micons/green-dot.png" : "https://maps.gstatic.com/mapfiles/ms2/micons/red-dot.png")
           : "https://maps.gstatic.com/mapfiles/ms2/micons/blue-dot.png";
 
         const pastMarker = L.marker([latitude, longitude], {
@@ -331,13 +361,18 @@ document.addEventListener("DOMContentLoaded", () => {
         }).addTo(map);
 
         if (isLast) {
-          pastMarker.bindPopup(createDetailedLabel("LATEST LOCATION", activeChildName, date_time, readable_address, true), {
-            className: 'map-label-popup latest',
-            closeButton: true,
-            autoClose: false,
-            closeOnClick: false
+          // Bind a permanent tooltip showing only the child's name with status color coding
+          pastMarker.bindTooltip(activeChildName, {
+            permanent: true,
+            direction: 'top',
+            className: insideGeofence ? 'child-marker-tooltip inside' : 'child-marker-tooltip outside'
           });
-          pastMarker.openPopup();
+
+          // Bind the detailed popup to show on click with status color coding
+          pastMarker.bindPopup(createDetailedLabel("LATEST LOCATION", activeChildName, date_time, readable_address, true), {
+            className: insideGeofence ? 'map-label-popup latest inside' : 'map-label-popup latest outside',
+            closeButton: true
+          });
         } else {
           // Past locations only show label on click via Popup
           pastMarker.bindPopup(createDetailedLabel("PAST LOCATION", activeChildName, date_time, readable_address, false), {
@@ -461,9 +496,13 @@ document.addEventListener("DOMContentLoaded", () => {
     scanBtn.disabled = true;
 
     try {
-      // Fetch the latest location from the DB (populated by Serial Bridge)
-      const res = await fetch(`/api/locations/${activeChildId}`);
+      // Fetch the latest location and geofence data from the DB
+      const [res, geoRes] = await Promise.all([
+        fetch(`/api/locations/${activeChildId}`),
+        fetch(`/api/geofences/${activeChildId}`)
+      ]);
       const data = await res.json();
+      const geofenceData = await geoRes.json();
 
       if (data.message === "no records yet") {
         // Fallback to browser geolocation if Arduino has no data
@@ -480,23 +519,42 @@ document.addEventListener("DOMContentLoaded", () => {
             const readable = await getReadableAddress(lat, lng);
             const formattedNow = new Date().toLocaleString("en-US");
 
+            // Calculate inside fallback geofence
+            let insideGeo = true;
+            if (Array.isArray(geofenceData) && geofenceData.length > 0) {
+              const g = geofenceData[0];
+              const dist = calculateDistance(lat, lng, g.latitude, g.longitude);
+              insideGeo = dist <= g.radius;
+            }
+
+            const fallbackIcon = insideGeo
+              ? "https://maps.gstatic.com/mapfiles/ms2/micons/green-dot.png"
+              : "https://maps.gstatic.com/mapfiles/ms2/micons/red-dot.png";
+
             // Update Map
             if (window.currentMarker) map.removeLayer(window.currentMarker);
             window.currentMarker = L.marker([lat, lng], {
               icon: L.icon({
-                iconUrl: "https://maps.gstatic.com/mapfiles/ms2/micons/red-dot.png",
+                iconUrl: fallbackIcon,
                 iconSize: [32, 32],
                 iconAnchor: [16, 32],
                 popupAnchor: [0, -30],
               }),
               zIndexOffset: 1000
-            }).addTo(map)
-              .bindPopup(createDetailedLabel("LATEST LOCATION", activeChildName, new Date(), readable, true), {
-                className: 'map-label-popup latest',
-                closeButton: true,
-                autoClose: false,
-                closeOnClick: false
-              });
+            }).addTo(map);
+
+            // Bind a permanent tooltip showing only the child's name with status color coding
+            window.currentMarker.bindTooltip(activeChildName, {
+              permanent: true,
+              direction: 'top',
+              className: insideGeo ? 'child-marker-tooltip inside' : 'child-marker-tooltip outside'
+            });
+
+            // Bind the detailed popup to show on click with status color coding
+            window.currentMarker.bindPopup(createDetailedLabel("LATEST LOCATION", activeChildName, new Date(), readable, true), {
+              className: insideGeo ? 'map-label-popup latest inside' : 'map-label-popup latest outside',
+              closeButton: true
+            });
             
             window.currentMarker.openPopup();
 
@@ -526,25 +584,42 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const formattedNow = formatFullDateTime(date_time);
 
+        // Calculate inside geofence
+        let insideGeo = true;
+        if (Array.isArray(geofenceData) && geofenceData.length > 0) {
+          const g = geofenceData[0];
+          const dist = calculateDistance(latitude, longitude, g.latitude, g.longitude);
+          insideGeo = dist <= g.radius;
+        }
+
+        const markerIcon = insideGeo
+          ? "https://maps.gstatic.com/mapfiles/ms2/micons/green-dot.png"
+          : "https://maps.gstatic.com/mapfiles/ms2/micons/red-dot.png";
+
         // Update Map
         if (window.currentMarker) map.removeLayer(window.currentMarker);
         window.currentMarker = L.marker([latitude, longitude], {
           icon: L.icon({
-            iconUrl: "https://maps.gstatic.com/mapfiles/ms2/micons/red-dot.png",
+            iconUrl: markerIcon,
             iconSize: [32, 32],
             iconAnchor: [16, 32],
             popupAnchor: [0, -30],
           }),
           zIndexOffset: 1000
-        }).addTo(map)
-          .bindPopup(createDetailedLabel("LATEST LOCATION", activeChildName, date_time, readable_address, true), {
-            className: 'map-label-popup latest',
-            closeButton: true,
-            autoClose: false,
-            closeOnClick: false
-          });
-        
-        window.currentMarker.openPopup();
+        }).addTo(map);
+
+        // Bind a permanent tooltip showing only the child's name with status color coding
+        window.currentMarker.bindTooltip(activeChildName, {
+          permanent: true,
+          direction: 'top',
+          className: insideGeo ? 'child-marker-tooltip inside' : 'child-marker-tooltip outside'
+        });
+
+        // Bind the detailed popup to show on click with status color coding
+        window.currentMarker.bindPopup(createDetailedLabel("LATEST LOCATION", activeChildName, date_time, readable_address, true), {
+          className: insideGeo ? 'map-label-popup latest inside' : 'map-label-popup latest outside',
+          closeButton: true
+        });
 
         map.setView([latitude, longitude], 15);
 
