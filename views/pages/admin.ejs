@@ -632,6 +632,10 @@
     margin-bottom: 12px;
     color: var(--brand-purple-light);
   }
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
 </style>
 
 <body>
@@ -653,8 +657,8 @@
       </div>
 
       <div class="control-row">
-        <div class="search-wrapper">
-          <span class="search-icon">🔍</span>
+        <div class="search-wrapper" style="position: relative; width: 100%;">
+          <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #888;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
           <input type="text" id="directorySearch" class="search-input" placeholder="Search parents, emails, or children..." oninput="filterDirectory()" />
         </div>
       </div>
@@ -662,7 +666,9 @@
       <div class="parents-list" id="parentsContainer">
         <!-- Rendered dynamically -->
         <div class="empty-state">
-          <div class="empty-state-icon">🔄</div>
+          <div class="empty-state-icon" style="margin-bottom: 12px; display: inline-block;">
+            <svg class="spinner" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--brand-purple-light); animation: spin 1s linear infinite;"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>
+          </div>
           <p>Loading database directory...</p>
         </div>
       </div>
@@ -722,9 +728,12 @@
           <textarea id="mParentAddress" class="form-control" placeholder="123 Main St, Iloilo City"></textarea>
         </div>
 
-        <div class="form-group">
+        <div class="form-group" style="position: relative;">
           <label for="mParentPass" id="lblParentPass">Account Password *</label>
-          <input type="password" id="mParentPass" class="form-control" placeholder="Enter password" />
+          <input type="password" id="mParentPass" class="form-control" placeholder="Enter password" style="padding-right: 55px;" />
+          <button type="button" id="toggleAdminPassBtn" onclick="toggleAdminPassword()" style="position: absolute; right: 10px; bottom: 8px; background: none; border: none; color: #692e69; cursor: pointer; z-index: 10; padding: 5px; display: flex; align-items: center; justify-content: center;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-eye"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+          </button>
         </div>
 
         <div class="modal-actions">
@@ -993,7 +1002,9 @@
       if (globalParents.length === 0) {
         container.innerHTML = `
           <div class="empty-state">
-            <div class="empty-state-icon">👤</div>
+            <div class="empty-state-icon" style="margin-bottom: 12px; display: inline-block;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--brand-purple-light);"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            </div>
             <p>No parent accounts exist in the database.</p>
           </div>
         `;
@@ -1061,9 +1072,9 @@
         actionsBar.innerHTML = `
           <span style="font-weight: 700; color: var(--brand-purple); font-size:13px;">Actions</span>
           <div class="action-buttons-group">
-            <button class="btn-action edit" onclick="ePrevent(event); openParentModal(${JSON.stringify(parent).replace(/"/g, '&quot;')})">✏️ Edit</button>
-            <button class="btn-action delete" onclick="ePrevent(event); handleDeleteParent(${parent.id})">🗑️ Delete</button>
-            <button class="btn-action add-child" onclick="ePrevent(event); openChildModal(null, ${parent.id})">👶 + Add Kid</button>
+            <button class="btn-action edit" onclick="ePrevent(event); openParentModal(${JSON.stringify(parent).replace(/"/g, '&quot;')})">Edit</button>
+            <button class="btn-action delete" onclick="ePrevent(event); handleDeleteParent(${parent.id})">Delete</button>
+            <button class="btn-action add-child" onclick="ePrevent(event); openChildModal(null, ${parent.id})">+ Add Kid</button>
           </div>
         `;
         content.appendChild(actionsBar);
@@ -1107,8 +1118,8 @@
               <td><span class="child-tag ${tagClass}">${child.child_gender}</span></td>
               <td>
                 <div style="display: flex; gap: 5px;">
-                  <button class="btn-action edit" style="padding: 4px 8px; font-size:11px;" onclick="ePrevent(event); openChildModal(${JSON.stringify(child).replace(/"/g, '&quot;')})">✏️</button>
-                  <button class="btn-action delete" style="padding: 4px 8px; font-size:11px;" onclick="ePrevent(event); handleDeleteChild(${child.id})">🗑️</button>
+                  <button class="btn-action edit" style="padding: 4px 8px; font-size:11px;" onclick="ePrevent(event); openChildModal(${JSON.stringify(child).replace(/"/g, '&quot;')})">Edit</button>
+                  <button class="btn-action delete" style="padding: 4px 8px; font-size:11px;" onclick="ePrevent(event); handleDeleteChild(${child.id})">Delete</button>
                 </div>
               </td>
             `;
@@ -1187,11 +1198,30 @@
     // -------------------------------------------------------------
     // Parent CRUD Handlers
     // -------------------------------------------------------------
+    const eyeIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-eye"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+    const eyeOffIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-eye-off"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+
+    function toggleAdminPassword() {
+      const input = document.getElementById("mParentPass");
+      const btn = document.getElementById("toggleAdminPassBtn");
+      if (input.type === "password") {
+        input.type = "text";
+        btn.innerHTML = eyeOffIcon;
+      } else {
+        input.type = "password";
+        btn.innerHTML = eyeIcon;
+      }
+    }
+
     function openParentModal(parent = null) {
       const modal = document.getElementById("parentModal");
       const title = document.getElementById("parentModalTitle");
       const submitBtn = document.getElementById("parentSubmitBtn");
       
+      // Reset password toggle state
+      document.getElementById("mParentPass").type = "password";
+      document.getElementById("toggleAdminPassBtn").innerHTML = eyeIcon;
+
       if (parent) {
         title.textContent = "Edit Parent Account";
         submitBtn.textContent = "Save Changes";
