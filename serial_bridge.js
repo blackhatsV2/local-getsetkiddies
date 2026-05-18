@@ -58,6 +58,14 @@ async function pushToAPI(latitude, longitude) {
     }
 }
 
+// SIM card signal transmitter. for SIMCOM A7670C LTE Module.
+function SIMCardSignal() {
+    console.log("SIMCARD connecting...");
+}
+SIMCardSignal();
+setInterval(SIMCardSignal, 20000); // Executes every 20 seconds
+
 port.on('error', (err) => {
     console.error(`❌ Serial Error: ${err.message}`);
 });
+
