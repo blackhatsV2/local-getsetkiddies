@@ -636,6 +636,10 @@
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
   }
+  @keyframes marker-pulse {
+    0% { transform: scale(0.5); opacity: 0.8; }
+    100% { transform: scale(1.8); opacity: 0; }
+  }
 </style>
 
 <body>
@@ -801,6 +805,7 @@
   <script>
     let globalParents = [];
     let globalChildren = [];
+    let globalLocations = [];
     let currentSelectedParentId = null;
 
     // Leaflet map vars
@@ -853,6 +858,32 @@
       }).addTo(map);
     }
 
+    const createCustomMarkerHtml = (color, pulse = false) => `
+      <div style="position: relative; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">
+        ${pulse ? `<div style="position: absolute; width: 30px; height: 30px; border-radius: 50%; background-color: ${color}; opacity: 0.4; animation: marker-pulse 1.5s infinite ease-out;"></div>` : ''}
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${color}" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+          <circle cx="12" cy="10" r="3" fill="#ffffff"></circle>
+        </svg>
+      </div>
+    `;
+
+    const getRedIcon = () => L.divIcon({
+      html: createCustomMarkerHtml('#ea4335', true),
+      className: 'custom-leaflet-marker',
+      iconSize: [30, 30],
+      iconAnchor: [15, 30],
+      popupAnchor: [0, -30]
+    });
+
+    const getBlueIcon = () => L.divIcon({
+      html: createCustomMarkerHtml('#4285f4', false),
+      className: 'custom-leaflet-marker',
+      iconSize: [30, 30],
+      iconAnchor: [15, 30],
+      popupAnchor: [0, -30]
+    });
+
     function resetMapView() {
       if (map) {
         map.setView([DEFAULT_LAT, DEFAULT_LNG], 11);
@@ -893,10 +924,21 @@
       let bounds = [];
 
       children.forEach(child => {
-        // Plot Geofence if exists
+        // Find historical locations for this child
+        const history = globalLocations.filter(loc => loc.child_id === child.id);
+
+        let latestLat = null;
+        let latestLng = null;
+        let latestTime = null;
+        let latestAddress = null;
+
+        // Plot geofence safety circle if exists
         if (child.fence_lat && child.fence_lng) {
           const radius = child.fence_radius || 100;
-          const fenceCircle = L.circle([parseFloat(child.fence_lat), parseFloat(child.fence_lng)], {
+          const fenceLat = parseFloat(child.fence_lat);
+          const fenceLng = parseFloat(child.fence_lng);
+
+          const fenceCircle = L.circle([fenceLat, fenceLng], {
             color: '#8b3c8b',
             fillColor: '#8b3c8b',
             fillOpacity: 0.15,
@@ -909,36 +951,91 @@
           });
 
           mapFences.push(fenceCircle);
-          bounds.push([parseFloat(child.fence_lat), parseFloat(child.fence_lng)]);
+          bounds.push([fenceLat, fenceLng]);
           activeGeofencesCount++;
         }
 
-        // Plot Latest Location if exists
-        if (child.child_lat && child.child_lng) {
-          const lat = parseFloat(child.child_lat);
-          const lng = parseFloat(child.child_lng);
+        // 1. Plot previous historical locations as BLUE markers
+        if (history.length > 1) {
+          const previousLocations = history.slice(0, history.length - 1);
+          previousLocations.forEach((loc, index) => {
+            const locLat = parseFloat(loc.latitude);
+            const locLng = parseFloat(loc.longitude);
+            const locTime = new Date(loc.date_time).toLocaleString();
 
-          const marker = L.marker([lat, lng]).addTo(map);
+            const prevMarker = L.marker([locLat, locLng], { icon: getBlueIcon() }).addTo(map);
+            
+            const prevPopup = `
+              <div style="font-family: inherit; font-size:13px; line-height: 1.4;">
+                <b style="color: #4285f4; font-size: 14px;">History: ${child.firstname}</b>
+                <br/>
+                <b>Position:</b> #${index + 1}
+                <hr style="margin: 8px 0; border: 0; border-top: 1px solid #ddd;" />
+                <b>Time:</b> ${locTime}
+                <br/>
+                <b>Address:</b> ${loc.readable_address || 'No address logged'}
+              </div>
+            `;
+            
+            prevMarker.bindPopup(prevPopup);
+            prevMarker.bindTooltip(`History #${index + 1}`, { direction: 'bottom' });
+            mapMarkers.push(prevMarker);
+            bounds.push([locLat, locLng]);
+          });
+        }
 
-          const timeString = child.last_seen ? new Date(child.last_seen).toLocaleString() : 'N/A';
+        // 2. Identify the most recent location
+        if (history.length > 0) {
+          const latestLoc = history[history.length - 1];
+          latestLat = parseFloat(latestLoc.latitude);
+          latestLng = parseFloat(latestLoc.longitude);
+          latestTime = new Date(latestLoc.date_time).toLocaleString();
+          latestAddress = latestLoc.readable_address || 'No address logged';
+        } else if (child.child_lat && child.child_lng) {
+          latestLat = parseFloat(child.child_lat);
+          latestLng = parseFloat(child.child_lng);
+          latestTime = child.last_seen ? new Date(child.last_seen).toLocaleString() : 'N/A';
+          latestAddress = child.readable_address || 'No address logged';
+        }
+
+        // 3. Plot the most recent location as a RED pulsing marker
+        if (latestLat !== null && latestLng !== null) {
+          const recentMarker = L.marker([latestLat, latestLng], { icon: getRedIcon() }).addTo(map);
+
           const popupContent = `
             <div style="font-family: inherit; font-size:13px; line-height: 1.4;">
-              <b style="color: var(--brand-purple); font-size: 15px;">${child.firstname} ${child.lastname}</b>
+              <b style="color: #ea4335; font-size: 15px;">Latest: ${child.firstname} ${child.lastname}</b>
               <br/>
               <b>Age:</b> ${child.child_age} | <b>Gender:</b> ${child.child_gender}
               <hr style="margin: 8px 0; border: 0; border-top: 1px solid #ddd;" />
-              <b>Last Seen:</b> ${timeString}
+              <b>Last Seen:</b> ${latestTime}
               <br/>
-              <b>Address:</b> ${child.readable_address || 'No address logged'}
+              <b>Address:</b> ${latestAddress}
             </div>
           `;
 
-          marker.bindPopup(popupContent);
-          marker.bindTooltip(`Child: ${child.firstname}`, { direction: 'bottom' });
+          recentMarker.bindPopup(popupContent);
+          recentMarker.bindTooltip(`Latest Position`, { direction: 'top' });
 
-          mapMarkers.push(marker);
-          bounds.push([lat, lng]);
+          mapMarkers.push(recentMarker);
+          bounds.push([latestLat, latestLng]);
           activeLocationsCount++;
+
+          // 4. Draw dotted connector polyline from RED marker to assigned geofence center
+          if (child.fence_lat && child.fence_lng) {
+            const fenceLat = parseFloat(child.fence_lat);
+            const fenceLng = parseFloat(child.fence_lng);
+
+            const connector = L.polyline([[latestLat, latestLng], [fenceLat, fenceLng]], {
+              color: '#ea4335',
+              weight: 3,
+              dashArray: '6, 6',
+              opacity: 0.85
+            }).addTo(map);
+
+            connector.bindTooltip(`Distance Connector`, { permanent: false, direction: 'center' });
+            mapFences.push(connector);
+          }
         }
       });
 
@@ -953,12 +1050,16 @@
       // Update Map Summary Info
       summaryDetails.innerHTML = `
         <div class="legend-item">
-          <span class="legend-dot location"></span>
-          <span><b>Locations Plotted:</b> ${activeLocationsCount} / ${children.length} children</span>
+          <span class="legend-dot" style="background: #ea4335; border-radius:50%; width:10px; height:10px; display:inline-block; margin-right:8px;"></span>
+          <span><b>Latest Locations (Red):</b> ${activeLocationsCount} child markers</span>
         </div>
         <div class="legend-item">
-          <span class="legend-dot geofence"></span>
-          <span><b>Active Geofences:</b> ${activeGeofencesCount} safety rings</span>
+          <span class="legend-dot" style="background: #4285f4; border-radius:50%; width:10px; height:10px; display:inline-block; margin-right:8px;"></span>
+          <span><b>Previous History (Blue):</b> ${mapMarkers.length - activeLocationsCount} coordinate trace-points</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot geofence" style="border: 2px dashed #ea4335; width:10px; height:0px; display:inline-block; margin-right:8px; vertical-align:middle;"></span>
+          <span><b>Safety Ring Connector:</b> active safety link lines</span>
         </div>
       `;
     }
@@ -974,6 +1075,7 @@
         const data = await res.json();
         globalParents = data.parents;
         globalChildren = data.children;
+        globalLocations = data.locations || [];
 
         renderDirectoryTree();
 

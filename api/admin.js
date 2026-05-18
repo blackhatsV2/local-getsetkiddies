@@ -46,7 +46,14 @@ router.get("/data", (req, res) => {
         return res.status(500).json({ message: "Failed to fetch children data" });
       }
 
-      res.json({ parents, children });
+      const locationsSql = "SELECT * FROM locations ORDER BY date_time ASC";
+      db.query(locationsSql, (err, locations) => {
+        if (err) {
+          console.error("Error fetching locations for admin:", err);
+          return res.status(500).json({ message: "Failed to fetch locations history" });
+        }
+        res.json({ parents, children, locations });
+      });
     });
   });
 });
