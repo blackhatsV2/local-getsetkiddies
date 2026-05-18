@@ -35,17 +35,24 @@ A secure child GPS tracking application, we created it with Node.js, Express, an
 - MySQL Server
 
 ### Installation
-1. Clone the repository.
-2. Install dependencies:
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/blackhatsV2/local-getsetkiddies.git
+   ```
+2. Navigate to the project directory:
+   ```bash
+   cd local-getsetkiddies
+   ```
+3. Install dependencies:
    ```bash
    npm install
    ```
-3. Create a `.env` file based on `.env.example`:
+4. Create a `.env` file based on `.env.example`:
    ```bash
    cp .env.example .env
    ```
-4. Update `.env` with your database credentials and a strong `SESSION_SECRET`.
-5. Import the database schema:
+5. Update `.env` with your database credentials and a strong `SESSION_SECRET`.
+6. Import the database schema:
    ```bash
    mysql -u root -p getsetkiddies < db/getsetkiddies.sql
    ```
