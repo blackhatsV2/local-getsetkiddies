@@ -1,12 +1,19 @@
 # GetSetKiddies
 
-A secure child GPS tracking application, we built it with Node.js, Express, and MySQL.
+A secure child GPS tracking application, we created it with Node.js, Express, and MySQL.
 
 ## Team Members
 
 - **Georgy dela Cruz** — Lead Programmer
 - **Ellen Joy Cabaya** — UI/UX
 - **Rowena Supleo** — Documenter
+
+## User Access
+- **Username**: ellen@gmail.com
+- **Password**: 123
+
+- **Admin Username**: admin@gmail.com
+- **Admin Password**: 123
 
 ## Features
 - **Parent Portal**: Secure registration and login for parents.

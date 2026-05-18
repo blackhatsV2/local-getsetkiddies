@@ -1,0 +1,1372 @@
+<%- include('../partials/head') %>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+  :root {
+    --brand-purple: #692e69;
+    --brand-purple-light: #8b3c8b;
+    --accent-yellow: #ffff00;
+    --danger-red: #d9534f;
+    --success-green: #2ecc71;
+    --info-blue: #3498db;
+    --dark-text: #2c3e50;
+    --light-bg: #f8f9fa;
+    --glass-bg: rgba(255, 255, 255, 0.95);
+    --border-radius: 12px;
+  }
+
+  body {
+    background: radial-gradient(circle at 10% 20%, rgba(216, 241, 230, 0.46) 0.1%, rgba(233, 226, 226, 0.28) 90.1%);
+    font-family: 'Roboto', sans-serif;
+    color: var(--dark-text);
+  }
+
+  .admin-header {
+    background: linear-gradient(135deg, var(--brand-purple) 0%, var(--brand-purple-light) 100%);
+    color: white;
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+  }
+
+  .admin-header h1 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .admin-header h1 span {
+    color: var(--accent-yellow);
+  }
+
+  .admin-profile {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .admin-profile .badge {
+    background-color: rgba(255, 255, 255, 0.2);
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .logout-btn {
+    background-color: var(--danger-red);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 6px rgba(217, 83, 79, 0.2);
+  }
+
+  .logout-btn:hover {
+    background-color: #c9302c;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 12px rgba(217, 83, 79, 0.3);
+  }
+
+  .admin-container {
+    max-width: 1600px;
+    margin: 30px auto;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 30px;
+    align-items: start;
+  }
+
+  @media (max-width: 1100px) {
+    .admin-container {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Glassmorphic Cards */
+  .panel-card {
+    background: var(--glass-bg);
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    padding: 25px;
+    backdrop-filter: blur(10px);
+    transition: transform 0.3s ease;
+  }
+
+  .panel-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--brand-purple);
+    margin-top: 0;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid rgba(105, 46, 105, 0.1);
+    padding-bottom: 12px;
+  }
+
+  /* Search & Controls */
+  .control-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+
+  .search-wrapper {
+    flex: 1;
+    position: relative;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 12px 16px 12px 40px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    outline: none;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+  }
+
+  .search-input:focus {
+    border-color: var(--brand-purple-light);
+    box-shadow: 0 0 0 3px rgba(139, 60, 139, 0.15);
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #888;
+    font-size: 16px;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--brand-purple) 0%, var(--brand-purple-light) 100%);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 10px rgba(105, 46, 105, 0.2);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 15px rgba(105, 46, 105, 0.3);
+  }
+
+  .btn-outline {
+    background: white;
+    color: var(--brand-purple);
+    border: 1.5px solid var(--brand-purple);
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-outline:hover {
+    background-color: var(--brand-purple);
+    color: white;
+  }
+
+  /* Tree List view */
+  .parents-list {
+    max-height: 700px;
+    overflow-y: auto;
+    padding-right: 5px;
+  }
+
+  /* Custom scrollbar */
+  .parents-list::-webkit-scrollbar {
+    width: 6px;
+  }
+  .parents-list::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .parents-list::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.1);
+    border-radius: 10px;
+  }
+
+  .parent-accordion {
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: var(--border-radius);
+    margin-bottom: 15px;
+    background: white;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+  }
+
+  .parent-accordion.selected {
+    border-color: var(--brand-purple-light);
+    box-shadow: 0 0 0 2px var(--brand-purple-light), 0 8px 24px rgba(105, 46, 105, 0.08);
+  }
+
+  .parent-header {
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    background: #fbfbfb;
+    transition: background 0.2s ease;
+  }
+
+  .parent-header:hover {
+    background: #f5f5f5;
+  }
+
+  .parent-info-brief {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .parent-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--brand-purple);
+  }
+
+  .parent-email-sub {
+    font-size: 12px;
+    color: #666;
+  }
+
+  .parent-meta-badges {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .child-count-badge {
+    background-color: rgba(139, 60, 139, 0.1);
+    color: var(--brand-purple);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 20px;
+  }
+
+  .expand-chevron {
+    font-size: 14px;
+    color: var(--brand-purple);
+    transition: transform 0.25s ease;
+  }
+
+  .parent-accordion.open .expand-chevron {
+    transform: rotate(180deg);
+  }
+
+  .parent-content {
+    display: none;
+    border-top: 1px solid #f0f0f0;
+    padding: 20px;
+    background: white;
+    animation: slideDown 0.25s ease-out;
+  }
+
+  .parent-accordion.open .parent-content {
+    display: block;
+  }
+
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .parent-detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+    font-size: 13px;
+    background: var(--light-bg);
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px dashed #ddd;
+  }
+
+  .detail-item b {
+    color: #555;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .parent-actions-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+  }
+
+  .action-buttons-group {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-action {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .btn-action.edit {
+    background-color: rgba(52, 152, 219, 0.1);
+    color: var(--info-blue);
+  }
+  .btn-action.edit:hover {
+    background-color: var(--info-blue);
+    color: white;
+  }
+
+  .btn-action.delete {
+    background-color: rgba(217, 83, 79, 0.1);
+    color: var(--danger-red);
+  }
+  .btn-action.delete:hover {
+    background-color: var(--danger-red);
+    color: white;
+  }
+
+  .btn-action.add-child {
+    background-color: rgba(46, 204, 113, 0.1);
+    color: var(--success-green);
+  }
+  .btn-action.add-child:hover {
+    background-color: var(--success-green);
+    color: white;
+  }
+
+  /* Children Records Nested Styles */
+  .children-section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #555;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .children-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    text-align: left;
+  }
+
+  .children-table th {
+    padding: 8px 12px;
+    background-color: var(--light-bg);
+    color: #666;
+    font-weight: 600;
+    border-bottom: 1px solid #eee;
+  }
+
+  .children-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #f6f6f6;
+    vertical-align: middle;
+  }
+
+  .child-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background-color: var(--brand-purple);
+    color: white;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 700;
+    font-size: 11px;
+    margin-right: 8px;
+  }
+
+  .child-avatar.female {
+    background-color: #e83e8c;
+  }
+
+  .child-tag {
+    background: #eef;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .child-tag.female {
+    background: #ffeef8;
+    color: #c2185b;
+  }
+
+  .child-tag.male {
+    background: #eef5ff;
+    color: #0d47a1;
+  }
+
+  /* Leaflet Map Customizations */
+  .map-wrapper {
+    position: sticky;
+    top: 100px;
+  }
+
+  .map-container {
+    height: 480px;
+    border-radius: 15px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+    border: 2px solid var(--brand-purple-light);
+    margin-bottom: 20px;
+    z-index: 1;
+  }
+
+  .map-legend-card {
+    background: var(--light-bg);
+    padding: 15px 20px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    font-size: 13px;
+  }
+
+  .map-legend-card h4 {
+    margin: 0 0 10px;
+    color: var(--brand-purple);
+    font-weight: 700;
+  }
+
+  .legend-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+  }
+
+  .legend-dot.location {
+    background-color: #3498db;
+    border: 2px solid white;
+    box-shadow: 0 0 4px rgba(0,0,0,0.3);
+  }
+
+  .legend-dot.geofence {
+    background-color: rgba(139, 60, 139, 0.2);
+    border: 2px solid var(--brand-purple-light);
+  }
+
+  /* CRUD Forms Modals styles */
+  .custom-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    z-index: 2000;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.25s ease;
+  }
+
+  .modal-dialog {
+    background: white;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 500px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+    animation: scaleUp 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .modal-header {
+    background: linear-gradient(135deg, var(--brand-purple) 0%, var(--brand-purple-light) 100%);
+    color: white;
+    padding: 18px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .btn-close-modal {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+    line-height: 1;
+  }
+
+  .btn-close-modal:hover {
+    opacity: 1;
+  }
+
+  .modal-form {
+    padding: 24px;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  .form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #444;
+  }
+
+  .form-control {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1.5px solid #ddd;
+    outline: none;
+    font-size: 14px;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+  }
+
+  .form-control:focus {
+    border-color: var(--brand-purple-light);
+    box-shadow: 0 0 0 3px rgba(139, 60, 139, 0.1);
+  }
+
+  textarea.form-control {
+    resize: vertical;
+    min-height: 80px;
+  }
+
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+    margin-top: 10px;
+  }
+
+  .btn-modal-cancel {
+    background: #f1f2f6;
+    color: #555;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-modal-cancel:hover {
+    background: #e4e7eb;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px;
+    color: #777;
+    background: #fafafa;
+    border-radius: 12px;
+    border: 2px dashed #ddd;
+  }
+
+  .empty-state-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+    color: var(--brand-purple-light);
+  }
+</style>
+
+<body>
+  <!-- Admin Custom Premium Header -->
+  <header class="admin-header">
+    <h1>GetSet <span>Kiddies</span> <span style="font-size: 14px; background: rgba(255,255,255,0.15); padding: 4px 10px; border-radius: 6px; font-weight: 500; color: white;">Admin Portal</span></h1>
+    <div class="admin-profile">
+      <div class="badge">Connected to MySQL</div>
+      <button class="logout-btn" id="adminLogoutBtn">Logout</button>
+    </div>
+  </header>
+
+  <div class="admin-container">
+    <!-- Left Panel: Searchable Parents Tree & Child Profiles -->
+    <div class="panel-card">
+      <div class="panel-title">
+        <span>Parent & Child Directory</span>
+        <button class="btn-primary" onclick="openParentModal()"><span style="font-size: 16px;">+</span> Add Parent</button>
+      </div>
+
+      <div class="control-row">
+        <div class="search-wrapper">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="directorySearch" class="search-input" placeholder="Search parents, emails, or children..." oninput="filterDirectory()" />
+        </div>
+      </div>
+
+      <div class="parents-list" id="parentsContainer">
+        <!-- Rendered dynamically -->
+        <div class="empty-state">
+          <div class="empty-state-icon">🔄</div>
+          <p>Loading database directory...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel: Live Map Visualizer -->
+    <div class="panel-card map-wrapper">
+      <div class="panel-title">
+        <span id="mapTitle">Visual Tracking Area</span>
+        <button class="btn-outline" id="btnResetMap" onclick="resetMapView()">Reset View</button>
+      </div>
+
+      <div class="map-container" id="admin-map"></div>
+
+      <div class="map-legend-card" id="mapLegendCard">
+        <h4>Tracking Status Info</h4>
+        <div class="legend-items" id="mapSummaryDetails">
+          Select a parent from the directory to plot their children's latest safety geofences and physical coordinates on the map workspace.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Add / Edit Parent -->
+  <div class="custom-modal" id="parentModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 id="parentModalTitle">Add New Parent Account</h3>
+        <button class="btn-close-modal" onclick="closeModal('parentModal')">&times;</button>
+      </div>
+      <form class="modal-form" id="parentForm" onsubmit="handleParentSubmit(event)">
+        <input type="hidden" id="mParentId" />
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+          <div class="form-group">
+            <label for="mParentFirst">First Name *</label>
+            <input type="text" id="mParentFirst" class="form-control" placeholder="Jane" required />
+          </div>
+          <div class="form-group">
+            <label for="mParentLast">Last Name *</label>
+            <input type="text" id="mParentLast" class="form-control" placeholder="Doe" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="mParentEmail">Email Address *</label>
+          <input type="email" id="mParentEmail" class="form-control" placeholder="jane.doe@example.com" required />
+        </div>
+
+        <div class="form-group">
+          <label for="mParentPhone">Phone Number</label>
+          <input type="text" id="mParentPhone" class="form-control" placeholder="e.g. 09123456789" />
+        </div>
+
+        <div class="form-group">
+          <label for="mParentAddress">Home Address</label>
+          <textarea id="mParentAddress" class="form-control" placeholder="123 Main St, Iloilo City"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="mParentPass" id="lblParentPass">Account Password *</label>
+          <input type="password" id="mParentPass" class="form-control" placeholder="Enter password" />
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-modal-cancel" onclick="closeModal('parentModal')">Cancel</button>
+          <button type="submit" class="btn-primary" id="parentSubmitBtn">Create Account</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Add / Edit Child -->
+  <div class="custom-modal" id="childModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 id="childModalTitle">Add New Child Profile</h3>
+        <button class="btn-close-modal" onclick="closeModal('childModal')">&times;</button>
+      </div>
+      <form class="modal-form" id="childForm" onsubmit="handleChildSubmit(event)">
+        <input type="hidden" id="mChildId" />
+
+        <div class="form-group">
+          <label for="mChildParent">Assign to Parent Account *</label>
+          <select id="mChildParent" class="form-control" required>
+            <!-- Filled dynamically -->
+          </select>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+          <div class="form-group">
+            <label for="mChildFirst">Child First Name *</label>
+            <input type="text" id="mChildFirst" class="form-control" placeholder="Timmy" required />
+          </div>
+          <div class="form-group">
+            <label for="mChildLast">Child Last Name *</label>
+            <input type="text" id="mChildLast" class="form-control" placeholder="Doe" required />
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+          <div class="form-group">
+            <label for="mChildAge">Age (Years 1-18) *</label>
+            <input type="number" id="mChildAge" class="form-control" min="1" max="18" placeholder="10" required />
+          </div>
+          <div class="form-group">
+            <label for="mChildGender">Gender *</label>
+            <select id="mChildGender" class="form-control" required>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-modal-cancel" onclick="closeModal('childModal')">Cancel</button>
+          <button type="submit" class="btn-primary" id="childSubmitBtn">Register Child</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <%- include('../partials/footer') %>
+
+  <!-- Admin Dynamic Workspace Script -->
+  <script>
+    let globalParents = [];
+    let globalChildren = [];
+    let currentSelectedParentId = null;
+
+    // Leaflet map vars
+    let map = null;
+    let mapMarkers = [];
+    let mapFences = [];
+
+    // Default coordinates (Iloilo City region / Leon)
+    const DEFAULT_LAT = 10.70;
+    const DEFAULT_LNG = 122.50;
+
+    document.addEventListener("DOMContentLoaded", () => {
+      // Initialize map skeleton
+      initAdminMap();
+
+      // Fetch directory data
+      fetchDirectoryData();
+
+      // Hook logout button
+      const logoutBtn = document.getElementById("adminLogoutBtn");
+      if (logoutBtn) {
+        logoutBtn.addEventListener("click", async (e) => {
+          e.preventDefault();
+          const confirmed = await showConfirm("Are you sure you want to log out of the Admin Dashboard?");
+          if (!confirmed) return;
+
+          try {
+            await fetch("/api/parents/logout", { method: "GET" });
+            showAlert("Logged out successfully!");
+            setTimeout(() => {
+              window.location.href = "/login";
+            }, 1000);
+          } catch (err) {
+            console.error("Logout failed:", err);
+            showAlert("Error logging out.");
+          }
+        });
+      }
+    });
+
+    // -------------------------------------------------------------
+    // Leaflet Map Logic
+    // -------------------------------------------------------------
+    function initAdminMap() {
+      map = L.map("admin-map").setView([DEFAULT_LAT, DEFAULT_LNG], 11);
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 18
+      }).addTo(map);
+    }
+
+    function resetMapView() {
+      if (map) {
+        map.setView([DEFAULT_LAT, DEFAULT_LNG], 11);
+      }
+    }
+
+    function clearMapLayers() {
+      mapMarkers.forEach(m => map.removeLayer(m));
+      mapFences.forEach(f => map.removeLayer(f));
+      mapMarkers = [];
+      mapFences = [];
+    }
+
+    // Plot tracking data when parent is selected
+    function plotParentChildrenOnMap(parentId) {
+      clearMapLayers();
+      const parent = globalParents.find(p => p.id === parentId);
+      if (!parent) return;
+
+      const children = globalChildren.filter(c => c.parent_id === parentId);
+      const titleEl = document.getElementById("mapTitle");
+      titleEl.innerHTML = `Visual Tracking: <span style="color: var(--brand-purple-light); font-weight: bold;">${parent.firstname} ${parent.lastname}</span>`;
+
+      const summaryDetails = document.getElementById("mapSummaryDetails");
+
+      if (children.length === 0) {
+        summaryDetails.innerHTML = `
+          <div class="legend-item" style="color: #666;">
+            No child profiles are currently registered under ${parent.firstname} ${parent.lastname}.
+          </div>
+        `;
+        resetMapView();
+        return;
+      }
+
+      let activeGeofencesCount = 0;
+      let activeLocationsCount = 0;
+      let bounds = [];
+
+      children.forEach(child => {
+        // Plot Geofence if exists
+        if (child.fence_lat && child.fence_lng) {
+          const radius = child.fence_radius || 100;
+          const fenceCircle = L.circle([parseFloat(child.fence_lat), parseFloat(child.fence_lng)], {
+            color: '#8b3c8b',
+            fillColor: '#8b3c8b',
+            fillOpacity: 0.15,
+            radius: radius
+          }).addTo(map);
+
+          fenceCircle.bindTooltip(`Geofence: ${child.geofence_name || 'Safety zone'} (${child.firstname} ${child.lastname})`, {
+            permanent: false,
+            direction: 'top'
+          });
+
+          mapFences.push(fenceCircle);
+          bounds.push([parseFloat(child.fence_lat), parseFloat(child.fence_lng)]);
+          activeGeofencesCount++;
+        }
+
+        // Plot Latest Location if exists
+        if (child.child_lat && child.child_lng) {
+          const lat = parseFloat(child.child_lat);
+          const lng = parseFloat(child.child_lng);
+
+          const marker = L.marker([lat, lng]).addTo(map);
+
+          const timeString = child.last_seen ? new Date(child.last_seen).toLocaleString() : 'N/A';
+          const popupContent = `
+            <div style="font-family: inherit; font-size:13px; line-height: 1.4;">
+              <b style="color: var(--brand-purple); font-size: 15px;">${child.firstname} ${child.lastname}</b>
+              <br/>
+              <b>Age:</b> ${child.child_age} | <b>Gender:</b> ${child.child_gender}
+              <hr style="margin: 8px 0; border: 0; border-top: 1px solid #ddd;" />
+              <b>Last Seen:</b> ${timeString}
+              <br/>
+              <b>Address:</b> ${child.readable_address || 'No address logged'}
+            </div>
+          `;
+
+          marker.bindPopup(popupContent);
+          marker.bindTooltip(`Child: ${child.firstname}`, { direction: 'bottom' });
+
+          mapMarkers.push(marker);
+          bounds.push([lat, lng]);
+          activeLocationsCount++;
+        }
+      });
+
+      // Fit map bounds to show all markers/geofences
+      if (bounds.length > 0) {
+        map.fitBounds(bounds, { padding: [50, 50] });
+      } else {
+        showAlert("This parent's children have no geofences or recorded locations yet.");
+        resetMapView();
+      }
+
+      // Update Map Summary Info
+      summaryDetails.innerHTML = `
+        <div class="legend-item">
+          <span class="legend-dot location"></span>
+          <span><b>Locations Plotted:</b> ${activeLocationsCount} / ${children.length} children</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot geofence"></span>
+          <span><b>Active Geofences:</b> ${activeGeofencesCount} safety rings</span>
+        </div>
+      `;
+    }
+
+    // -------------------------------------------------------------
+    // Directory Loading & UI Tree Rendering
+    // -------------------------------------------------------------
+    async function fetchDirectoryData() {
+      try {
+        const res = await fetch("/api/admin/data");
+        if (!res.ok) throw new Error("Failed to load admin data");
+
+        const data = await res.json();
+        globalParents = data.parents;
+        globalChildren = data.children;
+
+        renderDirectoryTree();
+
+        // Re-plot map if a parent is currently selected
+        if (currentSelectedParentId) {
+          const stillExists = globalParents.some(p => p.id === currentSelectedParentId);
+          if (stillExists) {
+            plotParentChildrenOnMap(currentSelectedParentId);
+          } else {
+            currentSelectedParentId = null;
+            clearMapLayers();
+            document.getElementById("mapTitle").textContent = "Visual Tracking Area";
+            document.getElementById("mapSummaryDetails").innerHTML = "Select a parent from the directory to plot their children's latest safety geofences and physical coordinates.";
+          }
+        }
+      } catch (err) {
+        console.error(err);
+        showAlert("Error loading records from server.");
+      }
+    }
+
+    function renderDirectoryTree() {
+      const container = document.getElementById("parentsContainer");
+      container.innerHTML = "";
+
+      if (globalParents.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">👤</div>
+            <p>No parent accounts exist in the database.</p>
+          </div>
+        `;
+        return;
+      }
+
+      globalParents.forEach(parent => {
+        const parentChildren = globalChildren.filter(c => c.parent_id === parent.id);
+
+        const card = document.createElement("div");
+        card.className = `parent-accordion ${currentSelectedParentId === parent.id ? 'selected' : ''}`;
+        card.id = `parent-card-${parent.id}`;
+
+        // Create header
+        const header = document.createElement("div");
+        header.className = "parent-header";
+        header.onclick = (e) => {
+          // Toggle select
+          selectParent(parent.id);
+          // Toggle expand accordion
+          card.classList.toggle("open");
+        };
+
+        header.innerHTML = `
+          <div class="parent-info-brief">
+            <span class="parent-name">${parent.firstname} ${parent.lastname}</span>
+            <span class="parent-email-sub">${parent.email}</span>
+          </div>
+          <div class="parent-meta-badges">
+            <span class="child-count-badge">${parentChildren.length} ${parentChildren.length === 1 ? 'child' : 'children'}</span>
+            <span class="expand-chevron">▼</span>
+          </div>
+        `;
+
+        // Create collapsible content
+        const content = document.createElement("div");
+        content.className = "parent-content";
+
+        // Details grid
+        const detailGrid = document.createElement("div");
+        detailGrid.className = "parent-detail-grid";
+        detailGrid.innerHTML = `
+          <div class="detail-item">
+            <b>Phone Number</b>
+            <span>${parent.phone_number || 'N/A'}</span>
+          </div>
+          <div class="detail-item">
+            <b>Home Address</b>
+            <span>${parent.home_address || 'N/A'}</span>
+          </div>
+          <div class="detail-item">
+            <b>Date Registered</b>
+            <span>${new Date(parent.date_created).toLocaleDateString()}</span>
+          </div>
+          <div class="detail-item">
+            <b>Parent Account ID</b>
+            <span># ${parent.id}</span>
+          </div>
+        `;
+        content.appendChild(detailGrid);
+
+        // Actions row
+        const actionsBar = document.createElement("div");
+        actionsBar.className = "parent-actions-bar";
+        actionsBar.innerHTML = `
+          <span style="font-weight: 700; color: var(--brand-purple); font-size:13px;">Actions</span>
+          <div class="action-buttons-group">
+            <button class="btn-action edit" onclick="ePrevent(event); openParentModal(${JSON.stringify(parent).replace(/"/g, '&quot;')})">✏️ Edit</button>
+            <button class="btn-action delete" onclick="ePrevent(event); handleDeleteParent(${parent.id})">🗑️ Delete</button>
+            <button class="btn-action add-child" onclick="ePrevent(event); openChildModal(null, ${parent.id})">👶 + Add Kid</button>
+          </div>
+        `;
+        content.appendChild(actionsBar);
+
+        // Children Section
+        const childrenSection = document.createElement("div");
+        childrenSection.innerHTML = `<div class="children-section-title">Registered Children Profiles</div>`;
+
+        if (parentChildren.length === 0) {
+          childrenSection.innerHTML += `
+            <p style="font-style: italic; color:#777; margin: 10px 0; font-size: 13px;">No child profiles registered for this parent.</p>
+          `;
+        } else {
+          const table = document.createElement("table");
+          table.className = "children-table";
+          table.innerHTML = `
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Age</th>
+                <th>Gender</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="children-body-${parent.id}"></tbody>
+          `;
+
+          const tbody = table.querySelector("tbody");
+          parentChildren.forEach(child => {
+            const tr = document.createElement("tr");
+            const avatarClass = child.child_gender.toLowerCase() === 'female' ? 'female' : '';
+            const tagClass = child.child_gender.toLowerCase() === 'female' ? 'female' : 'male';
+            const firstLetter = child.firstname.charAt(0).toUpperCase();
+
+            tr.innerHTML = `
+              <td>
+                <span class="child-avatar ${avatarClass}">${firstLetter}</span>
+                <b>${child.firstname} ${child.lastname}</b>
+              </td>
+              <td>${child.child_age} yrs</td>
+              <td><span class="child-tag ${tagClass}">${child.child_gender}</span></td>
+              <td>
+                <div style="display: flex; gap: 5px;">
+                  <button class="btn-action edit" style="padding: 4px 8px; font-size:11px;" onclick="ePrevent(event); openChildModal(${JSON.stringify(child).replace(/"/g, '&quot;')})">✏️</button>
+                  <button class="btn-action delete" style="padding: 4px 8px; font-size:11px;" onclick="ePrevent(event); handleDeleteChild(${child.id})">🗑️</button>
+                </div>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+          childrenSection.appendChild(table);
+        }
+
+        content.appendChild(childrenSection);
+        card.appendChild(header);
+        card.appendChild(content);
+        container.appendChild(card);
+      });
+    }
+
+    function ePrevent(e) {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }
+
+    function selectParent(parentId) {
+      const previous = document.querySelector(".parent-accordion.selected");
+      if (previous) previous.classList.remove("selected");
+
+      currentSelectedParentId = parentId;
+      const card = document.getElementById(`parent-card-${parentId}`);
+      if (card) card.classList.add("selected");
+
+      plotParentChildrenOnMap(parentId);
+    }
+
+    // -------------------------------------------------------------
+    // Search Filtering
+    // -------------------------------------------------------------
+    function filterDirectory() {
+      const query = document.getElementById("directorySearch").value.toLowerCase().trim();
+      const parentAccs = document.querySelectorAll(".parent-accordion");
+
+      parentAccs.forEach(card => {
+        const parentId = parseInt(card.id.replace("parent-card-", ""));
+        const parent = globalParents.find(p => p.id === parentId);
+        if (!parent) return;
+
+        const pName = `${parent.firstname} ${parent.lastname}`.toLowerCase();
+        const pEmail = parent.email.toLowerCase();
+        const pPhone = (parent.phone_number || '').toLowerCase();
+        const pAddress = (parent.home_address || '').toLowerCase();
+
+        const children = globalChildren.filter(c => c.parent_id === parentId);
+        const childMatch = children.some(c => 
+          `${c.firstname} ${c.lastname}`.toLowerCase().includes(query) ||
+          c.child_gender.toLowerCase().includes(query)
+        );
+
+        if (pName.includes(query) || pEmail.includes(query) || pPhone.includes(query) || pAddress.includes(query) || childMatch) {
+          card.style.display = "block";
+          if (query !== "") {
+            card.classList.add("open");
+          }
+        } else {
+          card.style.display = "none";
+          card.classList.remove("open");
+        }
+      });
+    }
+
+    // -------------------------------------------------------------
+    // Modal Helpers
+    // -------------------------------------------------------------
+    function closeModal(modalId) {
+      document.getElementById(modalId).style.display = "none";
+    }
+
+    // -------------------------------------------------------------
+    // Parent CRUD Handlers
+    // -------------------------------------------------------------
+    function openParentModal(parent = null) {
+      const modal = document.getElementById("parentModal");
+      const title = document.getElementById("parentModalTitle");
+      const submitBtn = document.getElementById("parentSubmitBtn");
+      
+      if (parent) {
+        title.textContent = "Edit Parent Account";
+        submitBtn.textContent = "Save Changes";
+        document.getElementById("mParentId").value = parent.id;
+        document.getElementById("mParentFirst").value = parent.firstname;
+        document.getElementById("mParentLast").value = parent.lastname;
+        document.getElementById("mParentEmail").value = parent.email;
+        document.getElementById("mParentPhone").value = parent.phone_number || "";
+        document.getElementById("mParentAddress").value = parent.home_address || "";
+        document.getElementById("mParentPass").placeholder = "Leave empty to keep existing password";
+        document.getElementById("mParentPass").required = false;
+        document.getElementById("lblParentPass").textContent = "Account Password";
+      } else {
+        title.textContent = "Add New Parent Account";
+        submitBtn.textContent = "Create Account";
+        document.getElementById("mParentId").value = "";
+        document.getElementById("mParentFirst").value = "";
+        document.getElementById("mParentLast").value = "";
+        document.getElementById("mParentEmail").value = "";
+        document.getElementById("mParentPhone").value = "";
+        document.getElementById("mParentAddress").value = "";
+        document.getElementById("mParentPass").placeholder = "Enter account password";
+        document.getElementById("mParentPass").required = true;
+        document.getElementById("lblParentPass").textContent = "Account Password *";
+      }
+      
+      modal.style.display = "flex";
+    }
+
+    async function handleParentSubmit(e) {
+      e.preventDefault();
+      const parentId = document.getElementById("mParentId").value;
+      const payload = {
+        firstname: document.getElementById("mParentFirst").value,
+        lastname: document.getElementById("mParentLast").value,
+        email: document.getElementById("mParentEmail").value,
+        phone_number: document.getElementById("mParentPhone").value,
+        home_address: document.getElementById("mParentAddress").value,
+        password: document.getElementById("mParentPass").value
+      };
+
+      const url = parentId ? `/api/admin/parent/edit/${parentId}` : "/api/admin/parent";
+      
+      try {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Failed to submit parent details");
+
+        showAlert(data.message);
+        closeModal("parentModal");
+        fetchDirectoryData();
+      } catch (err) {
+        console.error(err);
+        showAlert(err.message || "Error saving parent account.");
+      }
+    }
+
+    async function handleDeleteParent(parentId) {
+      const parent = globalParents.find(p => p.id === parentId);
+      if (!parent) return;
+
+      const confirmed = await showConfirm(`Are you sure you want to delete parent "${parent.firstname} ${parent.lastname}"? This will permanently delete their account AND all registered child profiles!`);
+      if (!confirmed) return;
+
+      try {
+        const res = await fetch(`/api/admin/parent/delete/${parentId}`, { method: "POST" });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Failed to delete parent");
+
+        showAlert(data.message);
+        fetchDirectoryData();
+      } catch (err) {
+        console.error(err);
+        showAlert(err.message || "Error deleting parent.");
+      }
+    }
+
+    // -------------------------------------------------------------
+    // Child CRUD Handlers
+    // -------------------------------------------------------------
+    function openChildModal(child = null, parentId = null) {
+      const modal = document.getElementById("childModal");
+      const title = document.getElementById("childModalTitle");
+      const submitBtn = document.getElementById("childSubmitBtn");
+
+      const parentSelect = document.getElementById("mChildParent");
+      parentSelect.innerHTML = "";
+      globalParents.forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p.id;
+        opt.textContent = `${p.firstname} ${p.lastname} (${p.email})`;
+        parentSelect.appendChild(opt);
+      });
+
+      if (child) {
+        title.textContent = "Edit Child Profile";
+        submitBtn.textContent = "Save Changes";
+        document.getElementById("mChildId").value = child.id;
+        document.getElementById("mChildFirst").value = child.firstname;
+        document.getElementById("mChildLast").value = child.lastname;
+        document.getElementById("mChildAge").value = child.child_age;
+        document.getElementById("mChildGender").value = child.child_gender;
+        parentSelect.value = child.parent_id;
+      } else {
+        title.textContent = "Register Child Profile";
+        submitBtn.textContent = "Register Child";
+        document.getElementById("mChildId").value = "";
+        document.getElementById("mChildFirst").value = "";
+        document.getElementById("mChildLast").value = "";
+        document.getElementById("mChildAge").value = "";
+        document.getElementById("mChildGender").value = "Male";
+        if (parentId) {
+          parentSelect.value = parentId;
+        }
+      }
+
+      modal.style.display = "flex";
+    }
+
+    async function handleChildSubmit(e) {
+      e.preventDefault();
+      const childId = document.getElementById("mChildId").value;
+      const payload = {
+        parent_id: document.getElementById("mChildParent").value,
+        firstname: document.getElementById("mChildFirst").value,
+        lastname: document.getElementById("mChildLast").value,
+        child_age: document.getElementById("mChildAge").value,
+        child_gender: document.getElementById("mChildGender").value
+      };
+
+      const url = childId ? `/api/admin/child/edit/${childId}` : "/api/admin/child";
+
+      try {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Failed to submit child details");
+
+        showAlert(data.message);
+        closeModal("childModal");
+        fetchDirectoryData();
+      } catch (err) {
+        console.error(err);
+        showAlert(err.message || "Error saving child profile.");
+      }
+    }
+
+    async function handleDeleteChild(childId) {
+      const child = globalChildren.find(c => c.id === childId);
+      if (!child) return;
+
+      const confirmed = await showConfirm(`Are you sure you want to delete child profile "${child.firstname} ${child.lastname}"? This will permanently delete all recorded tracking history and geofence safety zones.`);
+      if (!confirmed) return;
+
+      try {
+        const res = await fetch(`/api/admin/child/delete/${childId}`, { method: "POST" });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Failed to delete child");
+
+        showAlert(data.message);
+        fetchDirectoryData();
+      } catch (err) {
+        console.error(err);
+        showAlert(err.message || "Error deleting child.");
+      }
+    }
+  </script>
+</body>
+</html>

@@ -13,6 +13,7 @@ import parentRoutes from "./api/parents.js";
 import childRoutes from "./api/children.js";
 import locationRoutes from "./api/locations.js";
 import geofenceRoutes from "./api/geofences.js";
+import adminRoutes from "./api/admin.js";
 const app = express();
 
 
@@ -50,6 +51,7 @@ app.use("/api/parents", parentRoutes);
 app.use("/api/children", childRoutes);
 app.use("/api/locations", locationRoutes);
 app.use("/api/geofences", geofenceRoutes);
+app.use("/api/admin", adminRoutes);
 
 
 
@@ -81,6 +83,16 @@ app.get("/dashboard", (req, res) => {
   if (!req.session.parent) return res.redirect("/login");
   res.render("pages/dashboard", {
     title: "Get Set Kiddies",
+    parent: req.session.parent,
+  });
+});
+
+app.get("/admin/dashboard", (req, res) => {
+  if (!req.session.parent || !req.session.parent.isAdmin) {
+    return res.redirect("/login");
+  }
+  res.render("pages/admin", {
+    title: "Admin Dashboard",
     parent: req.session.parent,
   });
 });
