@@ -1,3 +1,26 @@
+## User Access
+- **Username**: ellen@gmail.com
+- **Password**: 123
+
+- **Admin Username**: admin@gmail.com
+- **Admin Password**: 123
+
+## User Access
+- **Username**: ellen@gmail.com
+- **Password**: 123
+
+- **Admin Username**: admin@gmail.com
+- **Admin Password**: 123
+
+
+## User Access
+- **Username**: ellen@gmail.com
+- **Password**: 123
+
+- **Admin Username**: admin@gmail.com
+- **Admin Password**: 123
+
+
 # GetSetKiddies
 
 A secure child GPS tracking application, we created it with Node.js, Express, and MySQL.
