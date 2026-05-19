@@ -1,17 +1,3 @@
-## User Access
-- **Username**: ellen@gmail.com
-- **Password**: 123
-
-- **Admin Username**: admin@gmail.com
-- **Admin Password**: 123
-
-## User Access
-- **Username**: ellen@gmail.com
-- **Password**: 123
-
-- **Admin Username**: admin@gmail.com
-- **Admin Password**: 123
-
 
 ## User Access
 - **Username**: ellen@gmail.com
